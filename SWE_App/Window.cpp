@@ -174,10 +174,130 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	mainBox->Add(row6);
 	mainBox->AddSpacer(10);
 
+	// Button Enabled/Disabled
+	btnNum1->Enable(true);
+	btnNum2->Enable(true);
+	btnNum3->Enable(true);
+	btnNum4->Enable(true);
+	btnNum5->Enable(true);
+	btnNum6->Enable(true);
+	btnNum7->Enable(true);
+	btnNum8->Enable(true);
+	btnNum9->Enable(true);
+	btnNum0->Enable(true);
+	btnEquals->Enable(true);
+	btnAdd->Enable(true);
+	btnSubtract->Enable(false);
+	btnMultiply->Enable(false);
+	btnDivide->Enable(false);
+	btnMod->Enable(false);
+	btnSIN->Enable(false);
+	btnCOS->Enable(false);
+	btnTAN->Enable(false);
+	btnDecimal->Enable(false);
+	btnNegative->Enable(false);
+	btnBackspace->Enable(true);
+	btnClear->Enable(true);
+
 	SetSizerAndFit(mainBox);
 }
 
 void Window::OnButtonClick(wxCommandEvent& _event)
 {
+	wxButton* evtButton = static_cast<wxButton*>(_event.GetEventObject());
+	int num1, num2;
+	
+
+	switch (evtButton->GetId())
+	{
+	case IDTable::btnNum1:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnNum2:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnNum3:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnNum4:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnNum5:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnNum6:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnNum7:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnNum8:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnNum9:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnNum0:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnEquals:
+		break;
+
+	case IDTable::btnAdd:
+		mainTextBox->AppendText(evtButton->GetLabel());
+		break;
+
+	case IDTable::btnSubtract:
+		break;
+
+	case IDTable::btnMultiply:
+		break;
+
+	case IDTable::btnDivide:
+		break;
+
+	case IDTable::btnMod:
+		break;
+
+	case IDTable::btnSIN:
+		break;
+
+	case IDTable::btnCOS:
+		break;
+
+	case IDTable::btnTAN:
+		break;
+
+	case IDTable::btnDecimal:
+		break;
+
+	case IDTable::btnNegative:
+		break;
+
+	case IDTable::btnBackspace:
+	{
+		wxString editTextBox = mainTextBox->GetLineText(mainTextBox->GetLineLength(1));
+		editTextBox = editTextBox.RemoveLast();
+		mainTextBox->SetLabel(editTextBox);
+		break;
+	}
+	case IDTable::btnClear:
+		mainTextBox->SetLabelText("");
+		break;
+
+	default:
+		break;
+	}
+	// 
 
 }
