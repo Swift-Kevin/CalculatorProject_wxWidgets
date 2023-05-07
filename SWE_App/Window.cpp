@@ -340,6 +340,8 @@ void Window::ParseStringCalculate()
 		tokens.push_back(secondaryStringToParseWith);
 	}
 
+	if (tokens.size() < 3) return;
+
 	// Stores the tokens at the first, second, and third values as
 	// ints and a char (ascii val)
 	num1 = std::stoi(tokens[0]);
