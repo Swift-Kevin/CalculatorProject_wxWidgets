@@ -1,4 +1,8 @@
 #include "wx/wx.h"
+#include "wx/tokenzr.h"
+#include <queue>
+#include <sstream>
+
 class Window : public wxFrame
 {
 	wxBoxSizer* mainBox = nullptr;
@@ -35,9 +39,19 @@ class Window : public wxFrame
 	wxButton* btnClear = nullptr;
 	wxTextCtrl* mainTextBox = nullptr;
 
+	std::string parseString;
+	std::vector<std::string> tokens;
+	std::queue<float> operandsQueue;
+	std::queue<char> operatorsQueue;
+
+	int charIndex = 0;
+	wxString answer;
+	
+
 public:
 	Window();
 	void OnButtonClick(wxCommandEvent& _event);
+	void ParseStringCalculate();
 
 	wxDECLARE_EVENT_TABLE();
 };

@@ -187,10 +187,10 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	btnNum0->Enable(true);
 	btnEquals->Enable(true);
 	btnAdd->Enable(true);
-	btnSubtract->Enable(false);
-	btnMultiply->Enable(false);
-	btnDivide->Enable(false);
-	btnMod->Enable(false);
+	btnSubtract->Enable(true);
+	btnMultiply->Enable(true);
+	btnDivide->Enable(true);
+	btnMod->Enable(true);
 	btnSIN->Enable(false);
 	btnCOS->Enable(false);
 	btnTAN->Enable(false);
@@ -205,8 +205,6 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 void Window::OnButtonClick(wxCommandEvent& _event)
 {
 	wxButton* evtButton = static_cast<wxButton*>(_event.GetEventObject());
-	int num1, num2;
-	
 
 	switch (evtButton->GetId())
 	{
@@ -251,22 +249,30 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		break;
 
 	case IDTable::btnEquals:
+	{
+		parseString = mainTextBox->GetValue().ToStdString();
+		ParseStringCalculate();
+		mainTextBox->SetLabel(answer);
 		break;
-
+	}
 	case IDTable::btnAdd:
-		mainTextBox->AppendText(evtButton->GetLabel());
+		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
 		break;
 
 	case IDTable::btnSubtract:
+		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
 		break;
 
 	case IDTable::btnMultiply:
+		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
 		break;
 
 	case IDTable::btnDivide:
+		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
 		break;
 
 	case IDTable::btnMod:
+		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
 		break;
 
 	case IDTable::btnSIN:
@@ -286,9 +292,16 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 	case IDTable::btnBackspace:
 	{
-		wxString editTextBox = mainTextBox->GetLineText(mainTextBox->GetLineLength(1));
-		editTextBox = editTextBox.RemoveLast();
-		mainTextBox->SetLabel(editTextBox);
+		std::string backSpaceText = mainTextBox->GetValue().ToStdString();
+		if (backSpaceText[backSpaceText.size()] == ' ')
+		{
+			backSpaceText.pop_back();
+			backSpaceText.pop_back();
+		}
+		else if (backSpaceText[backSpaceText.size()] != ' ')
+			backSpaceText.pop_back();
+		
+		mainTextBox->SetLabel(backSpaceText);
 		break;
 	}
 	case IDTable::btnClear:
@@ -298,6 +311,17 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	default:
 		break;
 	}
-	// 
 
+}
+
+void Window::ParseStringCalculate()
+{
+	std::stringstream lineStream(parseString);
+
+	std::string secondaryStringToParseWith;
+
+	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
+	{
+		tokens.push_back(secondaryStringToParseWith);
+	}
 }
