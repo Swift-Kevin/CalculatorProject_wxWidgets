@@ -28,6 +28,7 @@ enum IDTable
 	mainTextBox
 };
 
+#pragma region Event Table
 wxBEGIN_EVENT_TABLE(Window, wxFrame)
 EVT_BUTTON(IDTable::btnNum1, Window::OnButtonClick)
 EVT_BUTTON(IDTable::btnNum2, Window::OnButtonClick)
@@ -53,10 +54,11 @@ EVT_BUTTON(IDTable::btnNegative, Window::OnButtonClick)
 EVT_BUTTON(IDTable::btnBackspace, Window::OnButtonClick)
 EVT_BUTTON(IDTable::btnClear, Window::OnButtonClick)
 wxEND_EVENT_TABLE()
-
+#pragma endregion
 
 Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wxSize(300, 700))
 {
+	// A wxSize variable for all buttons to use, so it can be modified in one location rather thaan multiple.
 	wxSize normalButtonSize = wxSize(60, 70);
 
 #pragma region Setting wxBoxSizers and wxButtons to defaulted sizes
@@ -100,7 +102,7 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 #pragma endregion
 
 #pragma region Set Spacers and Box Size positions for Buttons in Calculator
-	
+
 	int spacerSize = GetSize().x / 25;
 
 	mainBox->AddSpacer(spacerSize);
@@ -202,14 +204,18 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	btnSIN->Enable(false);
 	btnCOS->Enable(false);
 	btnTAN->Enable(false);
-	btnDecimal->Enable(false);
+	btnDecimal->Enable(true);
 	btnNegative->Enable(false);
 	btnBackspace->Enable(true);
 	btnClear->Enable(true);
 
 #pragma endregion
 
+	// Sets the box sizers to work properly
 	SetSizerAndFit(mainBox);
+	// Defaults wasOperatorPressed to true for decimal button cases
+	// If its false then it would allow for ". + 3" which would cause an issue since there is no number to operate on
+	wasOperaterPressed = true;
 }
 
 void Window::OnButtonClick(wxCommandEvent& _event)
@@ -262,7 +268,9 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 	case IDTable::btnEquals:
 	{
+		// Ex: "3 + " stops this from running and instead forces the user to input a number
 		if (wasOperaterPressed) break;
+
 		parseString = mainTextBox->GetValue().ToStdString();
 		ParseStringCalculate();
 		mainTextBox->SetLabel(displayAns);
@@ -301,14 +309,18 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		break;
 
 	case IDTable::btnDecimal:
-		// Don't implement just yet, waiting on more details from Chris L. about this function.
+		if (mainTextBox->GetValue().IsEmpty() || wasOperaterPressed)
+			mainTextBox->AppendText('0' + evtButton->GetLabel());
+		else mainTextBox->AppendText(evtButton->GetLabel());
+
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNegative:
 		// Don't implement just yet, waiting on more details from Chris L. about this function.
 		break;
 #pragma endregion
-	
+
 	case IDTable::btnBackspace:
 	{
 		std::string backSpaceText = mainTextBox->GetValue().ToStdString();
@@ -330,6 +342,7 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 void Window::ParseStringCalculate()
 {
+	tokens.clear();
 	std::stringstream lineStream(parseString);
 
 	std::string secondaryStringToParseWith;
@@ -344,14 +357,13 @@ void Window::ParseStringCalculate()
 
 	// Stores the tokens at the first, second, and third values as
 	// ints and a char (ascii val)
-	num1 = std::stoi(tokens[0]);
+	num1 = std::stof(tokens[0]);
 	operational = *tokens[1].c_str();
-	num2 = std::stoi(tokens[2]);
-
+	num2 = std::stof(tokens[2]);
 	switch (operational)
 	{
 	case 37: // mod - in ascii value for case #
-		answer = num1 % num2;
+		answer = (int)num1 % (int)num2;
 		break;
 	case 42: // multiply - in ascii value for case #
 		answer = num1 * num2;
@@ -366,10 +378,11 @@ void Window::ParseStringCalculate()
 		answer = num1 / num2;
 		break;
 	}
-	num1 = num2 = 0;
-	operational = ' ';
-	displayAns = std::to_string(answer);
-	tokens.clear();
+
+	if ((int)answer == answer)
+		displayAns = std::to_string((int)answer);
+	else displayAns = std::to_string(answer);
+	
 }
 
 void Window::ChangeSymbolInParsedString(wxString _string)
@@ -377,7 +390,12 @@ void Window::ChangeSymbolInParsedString(wxString _string)
 	if (wasOperaterPressed)
 	{
 		std::string replaceSymString = mainTextBox->GetValue().ToStdString();
-		
+		if (mainTextBox->GetValue().ToStdString().size() == 0)
+		{
+			mainTextBox->AppendText("0 " + _string + " ");
+			return;
+		}
+
 		// Check to see if the current last character is a space or not
 		if (replaceSymString.back() == ' ')
 			replaceSymString.pop_back();
@@ -386,12 +404,12 @@ void Window::ChangeSymbolInParsedString(wxString _string)
 		// This helps with backspacing against operaters and then overriding numbers
 		// by accidentally deleting them
 		if (replaceSymString.back() == '+' ||
-			replaceSymString.back() == '-' || 
-			replaceSymString.back() == '*' || 
-			replaceSymString.back() == '/' || 
-			replaceSymString.back() == '%' )
-		replaceSymString.pop_back();
-		
+			replaceSymString.back() == '-' ||
+			replaceSymString.back() == '*' ||
+			replaceSymString.back() == '/' ||
+			replaceSymString.back() == '%')
+			replaceSymString.pop_back();
+
 		// Check to see if the current last character is a space or not
 		if (replaceSymString.back() == ' ')
 			replaceSymString.pop_back();
