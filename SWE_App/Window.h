@@ -44,6 +44,7 @@ class Window : public wxFrame
 	std::queue<float> operandsQueue;
 	std::queue<char> operatorsQueue;
 
+	bool wasOperaterPressed;
 	int charIndex = 0;
 	wxString answer;
 	
@@ -52,6 +53,7 @@ public:
 	Window();
 	void OnButtonClick(wxCommandEvent& _event);
 	void ParseStringCalculate();
+	void ChangeSymbolInParsedString(wxString _stringRef);
 
 	wxDECLARE_EVENT_TABLE();
 };

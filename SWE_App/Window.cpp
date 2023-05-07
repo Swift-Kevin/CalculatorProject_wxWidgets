@@ -210,42 +210,52 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	{
 	case IDTable::btnNum1:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNum2:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNum3:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNum4:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNum5:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNum6:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNum7:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNum8:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNum9:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnNum0:
 		mainTextBox->AppendText(evtButton->GetLabel());
+		wasOperaterPressed = false;
 		break;
 
 	case IDTable::btnEquals:
@@ -256,23 +266,24 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		break;
 	}
 	case IDTable::btnAdd:
-		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
+	{
+		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
-
+	}
 	case IDTable::btnSubtract:
-		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
+		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnMultiply:
-		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
+		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnDivide:
-		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
+		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnMod:
-		mainTextBox->AppendText(" " + evtButton->GetLabel() + " ");
+		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnSIN:
@@ -293,14 +304,9 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	case IDTable::btnBackspace:
 	{
 		std::string backSpaceText = mainTextBox->GetValue().ToStdString();
-		if (backSpaceText[backSpaceText.size()] == ' ')
-		{
+		if (backSpaceText.size() > 0)
 			backSpaceText.pop_back();
-			backSpaceText.pop_back();
-		}
-		else if (backSpaceText[backSpaceText.size()] != ' ')
-			backSpaceText.pop_back();
-		
+
 		mainTextBox->SetLabel(backSpaceText);
 		break;
 	}
@@ -323,5 +329,38 @@ void Window::ParseStringCalculate()
 	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
 	{
 		tokens.push_back(secondaryStringToParseWith);
+	}
+}
+
+void Window::ChangeSymbolInParsedString(wxString _stringRef)
+{
+	if (wasOperaterPressed)
+	{
+		std::string replaceSymString = mainTextBox->GetValue().ToStdString();
+		
+		// Check to see if the current last character is a space or not
+		if (replaceSymString.back() == ' ')
+			replaceSymString.pop_back();
+
+		// Check to see if the current character is a symbol or not
+		// This helps with backspacing against operaters and then overriding numbers
+		// by accidentally deleting them
+		if (replaceSymString.back() == '+' ||
+			replaceSymString.back() == '-' || 
+			replaceSymString.back() == '*' || 
+			replaceSymString.back() == '/' || 
+			replaceSymString.back() == '%' )
+		replaceSymString.pop_back();
+		
+		// Check to see if the current last character is a space or not
+		if (replaceSymString.back() == ' ')
+			replaceSymString.pop_back();
+		mainTextBox->SetLabel(replaceSymString);
+		mainTextBox->AppendText(" " + _stringRef + " ");
+	}
+	else
+	{
+		mainTextBox->AppendText(" " + _stringRef + " ");
+		wasOperaterPressed = true;
 	}
 }
