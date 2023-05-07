@@ -262,16 +262,16 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 	case IDTable::btnEquals:
 	{
+		if (wasOperaterPressed) break;
 		parseString = mainTextBox->GetValue().ToStdString();
 		ParseStringCalculate();
-		mainTextBox->SetLabel(answer);
+		mainTextBox->SetLabel(displayAns);
 		break;
 	}
+#pragma region Operator Buttons
 	case IDTable::btnAdd:
-	{
 		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
-	}
 	case IDTable::btnSubtract:
 		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
@@ -289,20 +289,26 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		break;
 
 	case IDTable::btnSIN:
+		// Don't implement just yet, waiting on more details from Chris L. about this function.
 		break;
 
 	case IDTable::btnCOS:
+		// Don't implement just yet, waiting on more details from Chris L. about this function.
 		break;
 
 	case IDTable::btnTAN:
+		// Don't implement just yet, waiting on more details from Chris L. about this function.
 		break;
 
 	case IDTable::btnDecimal:
+		// Don't implement just yet, waiting on more details from Chris L. about this function.
 		break;
 
 	case IDTable::btnNegative:
+		// Don't implement just yet, waiting on more details from Chris L. about this function.
 		break;
-
+#pragma endregion
+	
 	case IDTable::btnBackspace:
 	{
 		std::string backSpaceText = mainTextBox->GetValue().ToStdString();
@@ -314,12 +320,12 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	}
 	case IDTable::btnClear:
 		mainTextBox->SetLabelText("");
+		tokens.clear();
 		break;
 
 	default:
 		break;
 	}
-
 }
 
 void Window::ParseStringCalculate()
@@ -334,6 +340,34 @@ void Window::ParseStringCalculate()
 		tokens.push_back(secondaryStringToParseWith);
 	}
 
+	// Stores the tokens at the first, second, and third values as
+	// ints and a char (ascii val)
+	num1 = std::stoi(tokens[0]);
+	operational = *tokens[1].c_str();
+	num2 = std::stoi(tokens[2]);
+
+	switch (operational)
+	{
+	case 37: // mod - in ascii value for case #
+		answer = num1 % num2;
+		break;
+	case 42: // multiply - in ascii value for case #
+		answer = num1 * num2;
+		break;
+	case 43: // add - in ascii value for case #
+		answer = num1 + num2;
+		break;
+	case 45: // subtract - in ascii value for case #
+		answer = num1 - num2;
+		break;
+	case 47: // divide - in ascii value for case #
+		answer = num1 / num2;
+		break;
+	}
+	num1 = num2 = 0;
+	operational = ' ';
+	displayAns = std::to_string(answer);
+	tokens.clear();
 }
 
 void Window::ChangeSymbolInParsedString(wxString _string)

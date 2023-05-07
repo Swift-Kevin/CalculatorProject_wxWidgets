@@ -46,8 +46,10 @@ class Window : public wxFrame
 
 	bool wasOperaterPressed;
 	int charIndex = 0;
-	wxString answer;
-	
+	int answer;
+	wxString displayAns;
+	int num1, num2;
+	char operational;
 
 public:
 	Window();
