@@ -205,7 +205,7 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	btnCOS->Enable(false);
 	btnTAN->Enable(false);
 	btnDecimal->Enable(true);
-	btnNegative->Enable(false);
+	btnNegative->Enable(true);
 	btnBackspace->Enable(true);
 	btnClear->Enable(true);
 
@@ -317,7 +317,7 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		break;
 
 	case IDTable::btnNegative:
-		// Don't implement just yet, waiting on more details from Chris L. about this function.
+		SetButtonNumTo("-");
 		break;
 #pragma endregion
 
@@ -354,7 +354,7 @@ void Window::ParseStringCalculate()
 	}
 
 	if (tokens.size() < 3) return;
-
+	
 	// Stores the tokens at the first, second, and third values as
 	// ints and a char (ascii val)
 	num1 = std::stof(tokens[0]);
