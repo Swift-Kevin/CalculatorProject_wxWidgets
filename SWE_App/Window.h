@@ -53,7 +53,8 @@ public:
 	Window();
 	void OnButtonClick(wxCommandEvent& _event);
 	void ParseStringCalculate();
-	void ChangeSymbolInParsedString(wxString _stringRef);
+	void ChangeSymbolInParsedString(wxString _string);
+	void SetButtonNumTo(wxString _string);
 
 	wxDECLARE_EVENT_TABLE();
 };

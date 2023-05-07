@@ -59,6 +59,8 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 {
 	wxSize normalButtonSize = wxSize(60, 70);
 
+#pragma region Setting wxBoxSizers and wxButtons to defaulted sizes
+
 	mainBox = new wxBoxSizer(wxVERTICAL);
 	textBoxRow = new wxBoxSizer(wxHORIZONTAL);
 	row1 = new wxBoxSizer(wxHORIZONTAL);
@@ -95,6 +97,10 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	btnBackspace = new wxButton(this, IDTable::btnBackspace, "<-", wxDefaultPosition, normalButtonSize);
 	btnClear = new wxButton(this, IDTable::btnClear, "C", wxDefaultPosition, normalButtonSize);
 
+#pragma endregion
+
+#pragma region Set Spacers and Box Size positions for Buttons in Calculator
+	
 	int spacerSize = GetSize().x / 25;
 
 	mainBox->AddSpacer(spacerSize);
@@ -173,7 +179,9 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	mainBox->AddSpacer(10);
 	mainBox->Add(row6);
 	mainBox->AddSpacer(10);
+#pragma endregion
 
+#pragma region Button Enabling / Disabling
 	// Button Enabled/Disabled
 	btnNum1->Enable(true);
 	btnNum2->Enable(true);
@@ -199,6 +207,8 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	btnBackspace->Enable(true);
 	btnClear->Enable(true);
 
+#pragma endregion
+
 	SetSizerAndFit(mainBox);
 }
 
@@ -208,55 +218,47 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 	switch (evtButton->GetId())
 	{
+#pragma region Appending Number pressed into calculator string
 	case IDTable::btnNum1:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnNum2:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnNum3:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnNum4:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnNum5:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnNum6:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnNum7:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnNum8:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnNum9:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
 	case IDTable::btnNum0:
-		mainTextBox->AppendText(evtButton->GetLabel());
-		wasOperaterPressed = false;
+		SetButtonNumTo(evtButton->GetLabel());
 		break;
+#pragma endregion
 
 	case IDTable::btnEquals:
 	{
@@ -326,13 +328,15 @@ void Window::ParseStringCalculate()
 
 	std::string secondaryStringToParseWith;
 
+	// Collects all tokens in the string from mainTextBox
 	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
 	{
 		tokens.push_back(secondaryStringToParseWith);
 	}
+
 }
 
-void Window::ChangeSymbolInParsedString(wxString _stringRef)
+void Window::ChangeSymbolInParsedString(wxString _string)
 {
 	if (wasOperaterPressed)
 	{
@@ -356,11 +360,17 @@ void Window::ChangeSymbolInParsedString(wxString _stringRef)
 		if (replaceSymString.back() == ' ')
 			replaceSymString.pop_back();
 		mainTextBox->SetLabel(replaceSymString);
-		mainTextBox->AppendText(" " + _stringRef + " ");
+		mainTextBox->AppendText(" " + _string + " ");
 	}
 	else
 	{
-		mainTextBox->AppendText(" " + _stringRef + " ");
+		mainTextBox->AppendText(" " + _string + " ");
 		wasOperaterPressed = true;
 	}
+}
+
+void Window::SetButtonNumTo(wxString _string)
+{
+	mainTextBox->AppendText(_string);
+	wasOperaterPressed = false;
 }
