@@ -210,7 +210,6 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	btnClear->Enable(true);
 
 #pragma endregion
-
 	// Sets the box sizers to work properly
 	SetSizerAndFit(mainBox);
 	// Defaults wasOperatorPressed to true for decimal button cases
