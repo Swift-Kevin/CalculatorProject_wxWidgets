@@ -59,9 +59,9 @@ wxEND_EVENT_TABLE()
 Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wxSize(300, 700))
 {
 	// A wxSize variable for all buttons to use, so it can be modified in one location rather thaan multiple.
-	wxSize normalButtonSize = wxSize(60, 70);
+	wxSize normalButtonSize = wxSize(GetSize().x / 5, GetSize().y / 10);
 
-#pragma region Setting wxBoxSizers and wxButtons to defaulted sizes
+#pragma region Setting wxBoxSizers, wxButtons, and wxFont to defaults
 
 	mainBox = new wxBoxSizer(wxVERTICAL);
 	textBoxRow = new wxBoxSizer(wxHORIZONTAL);
@@ -71,6 +71,8 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	row4 = new wxBoxSizer(wxHORIZONTAL);
 	row5 = new wxBoxSizer(wxHORIZONTAL);
 	row6 = new wxBoxSizer(wxHORIZONTAL);
+
+	genericFont = new wxFont(10, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
 	// The text are not the same size as the other elements
 	mainTextBox = new wxTextCtrl(this, IDTable::mainTextBox, "", wxPoint(100, 100), wxSize(GetSize().x - 30, 128));
@@ -91,7 +93,7 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	btnMultiply = new wxButton(this, IDTable::btnMultiply, "*", wxDefaultPosition, normalButtonSize);
 	btnDivide = new wxButton(this, IDTable::btnDivide, "/", wxDefaultPosition, normalButtonSize);
 	btnMod = new wxButton(this, IDTable::btnMod, "%", wxDefaultPosition, normalButtonSize);
-	btnSIN = new wxButton(this, IDTable::btnSIN, "SiN", wxDefaultPosition, normalButtonSize);
+	btnSIN = new wxButton(this, IDTable::btnSIN, "SIN", wxDefaultPosition, normalButtonSize);
 	btnCOS = new wxButton(this, IDTable::btnCOS, "COS", wxDefaultPosition, normalButtonSize);
 	btnTAN = new wxButton(this, IDTable::btnTAN, "TAN", wxDefaultPosition, normalButtonSize);
 	btnDecimal = new wxButton(this, IDTable::btnDecimal, ".", wxDefaultPosition, normalButtonSize);
@@ -100,6 +102,34 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	btnClear = new wxButton(this, IDTable::btnClear, "C", wxDefaultPosition, normalButtonSize);
 
 #pragma endregion
+
+#pragma region Button Font
+	btnNum1->SetFont(*genericFont);
+	btnNum2->SetFont(*genericFont);
+	btnNum3->SetFont(*genericFont);
+	btnNum4->SetFont(*genericFont);
+	btnNum5->SetFont(*genericFont);
+	btnNum6->SetFont(*genericFont);
+	btnNum7->SetFont(*genericFont);
+	btnNum8->SetFont(*genericFont);
+	btnNum9->SetFont(*genericFont);
+	btnNum0->SetFont(*genericFont);
+	btnEquals->SetFont(*genericFont);
+	btnAdd->SetFont(*genericFont);
+	btnSubtract->SetFont(*genericFont);
+	btnMultiply->SetFont(*genericFont);
+	btnDivide->SetFont(*genericFont);
+	btnMod->SetFont(*genericFont);
+	btnSIN->SetFont(*genericFont);
+	btnCOS->SetFont(*genericFont);
+	btnTAN->SetFont(*genericFont);
+	btnDecimal->SetFont(*genericFont);
+	btnNegative->SetFont(*genericFont);
+	btnBackspace->SetFont(*genericFont);
+	btnClear->SetFont(*genericFont);
+	mainTextBox->SetFont(*genericFont);
+#pragma endregion
+
 
 #pragma region Set Spacers and Box Size positions for Buttons in Calculator
 
@@ -268,14 +298,15 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	case IDTable::btnEquals:
 	{
 		// Ex: "3 + " stops this from running and instead forces the user to input a number
+		displayAns = mainTextBox->GetValue().ToStdString();
 		if (wasOperaterPressed) break;
-
 		parseString = mainTextBox->GetValue().ToStdString();
 		ParseStringCalculate();
 		mainTextBox->SetLabel(displayAns);
+		wasOperaterPressed = wasEqualsPressed = true;
 		break;
 	}
-#pragma region Operator Buttons
+#pragma region Operations
 	case IDTable::btnAdd:
 		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
@@ -294,7 +325,9 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	case IDTable::btnMod:
 		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
+#pragma endregion
 
+#pragma region Trig Buttons
 	case IDTable::btnSIN:
 		// Don't implement just yet, waiting on more details from Chris L. about this function.
 		break;
@@ -306,6 +339,7 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	case IDTable::btnTAN:
 		// Don't implement just yet, waiting on more details from Chris L. about this function.
 		break;
+#pragma endregion
 
 	case IDTable::btnDecimal:
 		if (mainTextBox->GetValue().IsEmpty() || wasOperaterPressed)
@@ -316,9 +350,14 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		break;
 
 	case IDTable::btnNegative:
-		SetButtonNumTo("-");
+		if (wasNegationPressed)
+			return;
+		else if (!wasNumberPressed && !wasNegationPressed)
+		{
+			mainTextBox->AppendText("-");
+			wasNegationPressed = true;
+		}
 		break;
-#pragma endregion
 
 	case IDTable::btnBackspace:
 	{
@@ -332,6 +371,9 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	case IDTable::btnClear:
 		mainTextBox->SetLabelText("");
 		tokens.clear();
+		wasOperaterPressed = true;
+		wasNegationPressed = wasNumberPressed = false;
+
 		break;
 
 	default:
@@ -348,32 +390,31 @@ void Window::ParseStringCalculate()
 
 	// Collects all tokens in the string from mainTextBox
 	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
-	{
 		tokens.push_back(secondaryStringToParseWith);
-	}
 
 	if (tokens.size() < 3) return;
-	
+
 	// Stores the tokens at the first, second, and third values as
 	// ints and a char (ascii val)
 	num1 = std::stof(tokens[0]);
 	operational = *tokens[1].c_str();
 	num2 = std::stof(tokens[2]);
+
 	switch (operational)
 	{
-	case 37: // mod - in ascii value for case #
+	case '%':
 		answer = (int)num1 % (int)num2;
 		break;
-	case 42: // multiply - in ascii value for case #
+	case '*':
 		answer = num1 * num2;
 		break;
-	case 43: // add - in ascii value for case #
+	case '+':
 		answer = num1 + num2;
 		break;
-	case 45: // subtract - in ascii value for case #
+	case '-':
 		answer = num1 - num2;
 		break;
-	case 47: // divide - in ascii value for case #
+	case '/':
 		answer = num1 / num2;
 		break;
 	}
@@ -381,11 +422,13 @@ void Window::ParseStringCalculate()
 	if ((int)answer == answer)
 		displayAns = std::to_string((int)answer);
 	else displayAns = std::to_string(answer);
-	
+
 }
 
 void Window::ChangeSymbolInParsedString(wxString _string)
 {
+	if (wasNegationPressed) return;
+
 	if (wasOperaterPressed)
 	{
 		std::string replaceSymString = mainTextBox->GetValue().ToStdString();
@@ -420,10 +463,12 @@ void Window::ChangeSymbolInParsedString(wxString _string)
 		mainTextBox->AppendText(" " + _string + " ");
 		wasOperaterPressed = true;
 	}
+	wasNumberPressed = false;
 }
 
 void Window::SetButtonNumTo(wxString _string)
 {
 	mainTextBox->AppendText(_string);
-	wasOperaterPressed = false;
+	wasOperaterPressed = wasNegationPressed = false;
+	wasNumberPressed = true;
 }

@@ -14,6 +14,8 @@ class Window : public wxFrame
 	wxBoxSizer* row5 = nullptr;
 	wxBoxSizer* row6 = nullptr;
 
+	wxFont* genericFont = nullptr;
+
 	wxButton* btnNum1 = nullptr;
 	wxButton* btnNum2 = nullptr;
 	wxButton* btnNum3 = nullptr;
@@ -44,11 +46,11 @@ class Window : public wxFrame
 	std::queue<float> operandsQueue;
 	std::queue<char> operatorsQueue;
 
-	bool wasOperaterPressed;
+	bool wasOperaterPressed, wasEqualsPressed, wasNumberPressed, wasNegationPressed;
 	int charIndex = 0;
-	wxString displayAns;
-	float num1, num2, answer;
-	char operational;
+	wxString displayAns= " ";
+	float num1, num2, answer = 0;
+	char operational = ' ';
 
 public:
 	Window();
