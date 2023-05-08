@@ -130,7 +130,6 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	mainTextBox->SetFont(*genericFont);
 #pragma endregion
 
-
 #pragma region Set Spacers and Box Size positions for Buttons in Calculator
 
 	int spacerSize = GetSize().x / 25;
@@ -350,11 +349,10 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		break;
 
 	case IDTable::btnNegative:
-		if (wasNegationPressed)
-			return;
+		if (wasNegationPressed) return;
 		else if (!wasNumberPressed && !wasNegationPressed)
 		{
-			mainTextBox->AppendText("-");
+			mainTextBox->AppendText("~");
 			wasNegationPressed = true;
 		}
 		break;
@@ -363,9 +361,23 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	{
 		std::string backSpaceText = mainTextBox->GetValue().ToStdString();
 		if (backSpaceText.size() > 0)
+		{
 			backSpaceText.pop_back();
-
+		}
 		mainTextBox->SetLabel(backSpaceText);
+
+		if (backSpaceText.size() > 2)
+		{
+			std::string lastTwoChars = backSpaceText.substr(backSpaceText.size() - 2);
+
+			if (lastTwoChars == " +" || lastTwoChars == "+ " || 
+				lastTwoChars == " -" || lastTwoChars == "- " ||
+				lastTwoChars == " *" || lastTwoChars == "* " ||
+				lastTwoChars == " /" || lastTwoChars == "/ " ||
+				lastTwoChars == " %" || lastTwoChars == "% ")
+				wasOperaterPressed = true;
+		}
+
 		break;
 	}
 	case IDTable::btnClear:
@@ -391,6 +403,11 @@ void Window::ParseStringCalculate()
 	// Collects all tokens in the string from mainTextBox
 	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
 		tokens.push_back(secondaryStringToParseWith);
+
+	for (size_t i = 0; i < tokens.size(); ++i)
+		if (tokens[i][0] == '~')
+			tokens[i][0] = '-';
+	
 
 	if (tokens.size() < 3) return;
 
