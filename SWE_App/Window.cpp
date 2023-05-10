@@ -339,15 +339,16 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		// Don't implement just yet, waiting on more details from Chris L. about this function.
 		break;
 #pragma endregion
-
+#pragma region Decimal | Negative | BackSpace | Clear Buttons
 	case IDTable::btnDecimal:
+	{
 		if (mainTextBox->GetValue().IsEmpty() || wasOperaterPressed)
-			mainTextBox->AppendText('0' + evtButton->GetLabel());
-		else mainTextBox->AppendText(evtButton->GetLabel());
+		mainTextBox->AppendText('.');
 
 		wasOperaterPressed = false;
+		wasDecimalPressed = true;
 		break;
-
+	}
 	case IDTable::btnNegative:
 		if (wasNegationPressed) return;
 		else if (!wasNumberPressed && !wasNegationPressed)
@@ -361,21 +362,23 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	{
 		std::string backSpaceText = mainTextBox->GetValue().ToStdString();
 		if (backSpaceText.size() > 0)
-		{
 			backSpaceText.pop_back();
-		}
+
 		mainTextBox->SetLabel(backSpaceText);
 
 		if (backSpaceText.size() > 2)
 		{
 			std::string lastTwoChars = backSpaceText.substr(backSpaceText.size() - 2);
 
-			if (lastTwoChars == " +" || lastTwoChars == "+ " || 
+			if (lastTwoChars == " +" || lastTwoChars == "+ " ||
 				lastTwoChars == " -" || lastTwoChars == "- " ||
 				lastTwoChars == " *" || lastTwoChars == "* " ||
 				lastTwoChars == " /" || lastTwoChars == "/ " ||
 				lastTwoChars == " %" || lastTwoChars == "% ")
 				wasOperaterPressed = true;
+
+			if (lastTwoChars == "0." || lastTwoChars == ". ")
+				wasDecimalPressed = true;
 		}
 
 		break;
@@ -388,6 +391,8 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 		break;
 
+#pragma endregion
+
 	default:
 		break;
 	}
@@ -395,19 +400,23 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 void Window::ParseStringCalculate()
 {
-	tokens.clear();
-	std::stringstream lineStream(parseString);
-
-	std::string secondaryStringToParseWith;
-
-	// Collects all tokens in the string from mainTextBox
-	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
-		tokens.push_back(secondaryStringToParseWith);
+	CreateTokens();
 
 	for (size_t i = 0; i < tokens.size(); ++i)
+	{
 		if (tokens[i][0] == '~')
 			tokens[i][0] = '-';
-	
+
+		if (tokens[i].size() == 1 && tokens[i][0] == '.')
+			tokens[i] = '0';
+
+		/*if (tokens[i].find(" .") < tokens[i].length())
+			tokens[i] = '0';
+		else if (tokens[i].find(". ") < tokens[i].length())
+		{
+			tokens[i].insert(tokens[i].find(". ") + 1, "0");
+		}*/
+	}
 
 	if (tokens.size() < 3) return;
 
@@ -420,7 +429,9 @@ void Window::ParseStringCalculate()
 	switch (operational)
 	{
 	case '%':
-		answer = (int)num1 % (int)num2;
+		if (num1 < 1 || num2 < 1)
+			answer = 0;
+		else answer = (int)num1 % (int)num2;
 		break;
 	case '*':
 		answer = num1 * num2;
@@ -480,7 +491,7 @@ void Window::ChangeSymbolInParsedString(wxString _string)
 		mainTextBox->AppendText(" " + _string + " ");
 		wasOperaterPressed = true;
 	}
-	wasNumberPressed = false;
+	wasNumberPressed = wasDecimalPressed = false;
 }
 
 void Window::SetButtonNumTo(wxString _string)
@@ -488,4 +499,16 @@ void Window::SetButtonNumTo(wxString _string)
 	mainTextBox->AppendText(_string);
 	wasOperaterPressed = wasNegationPressed = false;
 	wasNumberPressed = true;
+}
+
+void Window::CreateTokens()
+{
+	tokens.clear();
+	std::stringstream lineStream(parseString);
+
+	std::string secondaryStringToParseWith;
+
+	// Collects all tokens in the string from mainTextBox
+	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
+		tokens.push_back(secondaryStringToParseWith);
 }
