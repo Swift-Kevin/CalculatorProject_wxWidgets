@@ -59,6 +59,7 @@ public:
 	void ChangeSymbolInParsedString(wxString _string);
 	void SetButtonNumTo(wxString _string);
 	void CreateTokens(); 
+	int CountCharInLastToken(char _charToCheckFor);
 
 	wxDECLARE_EVENT_TABLE();
 };

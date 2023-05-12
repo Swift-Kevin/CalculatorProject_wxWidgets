@@ -56,7 +56,7 @@ EVT_BUTTON(IDTable::btnClear, Window::OnButtonClick)
 wxEND_EVENT_TABLE()
 #pragma endregion
 
-Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wxSize(300, 700))
+Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wxSize(500, 900))
 {
 	// A wxSize variable for all buttons to use, so it can be modified in one location rather thaan multiple.
 	wxSize normalButtonSize = wxSize(GetSize().x / 5, GetSize().y / 10);
@@ -72,12 +72,12 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	row5 = new wxBoxSizer(wxHORIZONTAL);
 	row6 = new wxBoxSizer(wxHORIZONTAL);
 
-	genericFont = new wxFont(10, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+	genericFont = new wxFont(GetSize().x / 20, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
 	// The text are not the same size as the other elements
-	mainTextBox = new wxTextCtrl(this, IDTable::mainTextBox, "", wxPoint(100, 100), wxSize(GetSize().x - 30, 128));
+	mainTextBox = new wxTextCtrl(this, IDTable::mainTextBox, "", wxDefaultPosition, wxSize(GetSize().x - (GetSize().x / 12), GetSize().y / 7));
 
-	btnEquals = new wxButton(this, IDTable::btnEquals, "=", wxPoint(350, 380), normalButtonSize);
+	btnEquals = new wxButton(this, IDTable::btnEquals, "=", wxDefaultPosition, normalButtonSize);
 	btnNum1 = new wxButton(this, IDTable::btnNum1, "1", wxDefaultPosition, normalButtonSize);
 	btnNum2 = new wxButton(this, IDTable::btnNum2, "2", wxDefaultPosition, normalButtonSize);
 	btnNum3 = new wxButton(this, IDTable::btnNum3, "3", wxDefaultPosition, normalButtonSize);
@@ -96,7 +96,7 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	btnSIN = new wxButton(this, IDTable::btnSIN, "SIN", wxDefaultPosition, normalButtonSize);
 	btnCOS = new wxButton(this, IDTable::btnCOS, "COS", wxDefaultPosition, normalButtonSize);
 	btnTAN = new wxButton(this, IDTable::btnTAN, "TAN", wxDefaultPosition, normalButtonSize);
-	btnDecimal = new wxButton(this, IDTable::btnDecimal, ".", wxDefaultPosition, normalButtonSize);
+	btnDecimal = new wxButton(this, IDTable::btnDecimal, "deci", wxDefaultPosition, normalButtonSize);
 	btnNegative = new wxButton(this, IDTable::btnNegative, "neg", wxDefaultPosition, normalButtonSize);
 	btnBackspace = new wxButton(this, IDTable::btnBackspace, "<-", wxDefaultPosition, normalButtonSize);
 	btnClear = new wxButton(this, IDTable::btnClear, "C", wxDefaultPosition, normalButtonSize);
@@ -136,7 +136,7 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 
 	mainBox->AddSpacer(spacerSize);
 
-	textBoxRow->AddSpacer(spacerSize);
+	textBoxRow->AddSpacer(10);
 	textBoxRow->Add(mainTextBox);
 	mainBox->Add(textBoxRow);
 
@@ -253,45 +253,13 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	switch (evtButton->GetId())
 	{
 #pragma region Appending Number pressed into calculator string
-	case IDTable::btnNum1:
+	// All the number cases are doing the exact same thing, so can stack the cases like this to make it more compact
+	case IDTable::btnNum1: case IDTable::btnNum2: case IDTable::btnNum3: 
+	case IDTable::btnNum4: case IDTable::btnNum5: case IDTable::btnNum6: 
+	case IDTable::btnNum7: case IDTable::btnNum8: case IDTable::btnNum9: case IDTable::btnNum0: 
 		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
-	case IDTable::btnNum2:
-		SetButtonNumTo(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnNum3:
-		SetButtonNumTo(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnNum4:
-		SetButtonNumTo(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnNum5:
-		SetButtonNumTo(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnNum6:
-		SetButtonNumTo(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnNum7:
-		SetButtonNumTo(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnNum8:
-		SetButtonNumTo(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnNum9:
-		SetButtonNumTo(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnNum0:
-		SetButtonNumTo(evtButton->GetLabel());
-		break;
 #pragma endregion
 
 	case IDTable::btnEquals:
@@ -305,23 +273,9 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		wasOperaterPressed = wasEqualsPressed = true;
 		break;
 	}
+
 #pragma region Operations
-	case IDTable::btnAdd:
-		ChangeSymbolInParsedString(evtButton->GetLabel());
-		break;
-	case IDTable::btnSubtract:
-		ChangeSymbolInParsedString(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnMultiply:
-		ChangeSymbolInParsedString(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnDivide:
-		ChangeSymbolInParsedString(evtButton->GetLabel());
-		break;
-
-	case IDTable::btnMod:
+	case IDTable::btnAdd: case IDTable::btnSubtract: case IDTable::btnMultiply: case IDTable::btnDivide: case IDTable::btnMod:
 		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
 #pragma endregion
@@ -342,20 +296,28 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 #pragma region Decimal | Negative | BackSpace | Clear Buttons
 	case IDTable::btnDecimal:
 	{
-		if (mainTextBox->GetValue().IsEmpty() || wasOperaterPressed)
-		mainTextBox->AppendText('.');
+		if (mainTextBox->GetValue().ToStdString() != "")
+			if (CountCharInLastToken('.') == 1) return;
 
-		wasOperaterPressed = false;
+		if (mainTextBox->GetValue().IsEmpty() || wasOperaterPressed || wasNumberPressed || wasNegationPressed)
+			mainTextBox->AppendText('.');
+
+		wasOperaterPressed = wasNumberPressed = false;
 		wasDecimalPressed = true;
 		break;
 	}
 	case IDTable::btnNegative:
-		if (wasNegationPressed) return;
-		else if (!wasNumberPressed && !wasNegationPressed)
+		if (mainTextBox->GetValue().ToStdString() != "")
 		{
-			mainTextBox->AppendText("~");
-			wasNegationPressed = true;
+			if (CountCharInLastToken('~') == 1) return;
+			else if (CountCharInLastToken('.') == 1) return;
+			
 		}
+
+		if (mainTextBox->GetValue().ToStdString() == "" || !wasOperaterPressed || !wasNumberPressed || !wasDecimalPressed)
+			mainTextBox->AppendText("~");
+
+			wasNegationPressed = true;
 		break;
 
 	case IDTable::btnBackspace:
@@ -381,6 +343,12 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 				wasDecimalPressed = true;
 		}
 
+		if (mainTextBox->GetValue().ToStdString() == "")
+		{
+			wasEqualsPressed = wasNumberPressed = wasNegationPressed = wasDecimalPressed = false;
+			wasOperaterPressed = true;
+		}
+
 		break;
 	}
 	case IDTable::btnClear:
@@ -390,7 +358,6 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		wasNegationPressed = wasNumberPressed = false;
 
 		break;
-
 #pragma endregion
 
 	default:
@@ -410,12 +377,8 @@ void Window::ParseStringCalculate()
 		if (tokens[i].size() == 1 && tokens[i][0] == '.')
 			tokens[i] = '0';
 
-		/*if (tokens[i].find(" .") < tokens[i].length())
+		if (tokens[i].size() == 2 && tokens[i][0] == '-' && tokens[i][1] == '.')
 			tokens[i] = '0';
-		else if (tokens[i].find(". ") < tokens[i].length())
-		{
-			tokens[i].insert(tokens[i].find(". ") + 1, "0");
-		}*/
 	}
 
 	if (tokens.size() < 3) return;
@@ -455,8 +418,6 @@ void Window::ParseStringCalculate()
 
 void Window::ChangeSymbolInParsedString(wxString _string)
 {
-	if (wasNegationPressed) return;
-
 	if (wasOperaterPressed)
 	{
 		std::string replaceSymString = mainTextBox->GetValue().ToStdString();
@@ -497,18 +458,42 @@ void Window::ChangeSymbolInParsedString(wxString _string)
 void Window::SetButtonNumTo(wxString _string)
 {
 	mainTextBox->AppendText(_string);
-	wasOperaterPressed = wasNegationPressed = false;
+	wasOperaterPressed = wasNegationPressed = wasDecimalPressed = false;
 	wasNumberPressed = true;
 }
 
 void Window::CreateTokens()
 {
 	tokens.clear();
-	std::stringstream lineStream(parseString);
+	std::stringstream lineStream(mainTextBox->GetValue().ToStdString());
 
 	std::string secondaryStringToParseWith;
 
 	// Collects all tokens in the string from mainTextBox
 	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
 		tokens.push_back(secondaryStringToParseWith);
+	
+}
+
+int Window::CountCharInLastToken(char _charToCheckFor)
+{
+	int characterAbundanceCount = 0;
+	CreateTokens();
+
+	if (tokens.size() == 0)
+	{
+		for (auto characters : mainTextBox->GetValue().ToStdString())
+			if (characters == _charToCheckFor)
+				++characterAbundanceCount;
+	}
+	else
+	{
+		for (auto characters : tokens[tokens.size() - 1])
+		{
+			if (characters == _charToCheckFor)
+				++characterAbundanceCount;
+		}
+	}
+
+	return characterAbundanceCount;
 }
