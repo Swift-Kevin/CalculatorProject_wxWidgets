@@ -126,8 +126,8 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 #pragma endregion
 	// Sets the box sizers to work properly
 	SetSizerAndFit(mainBox);
-	// Defaults wasOperatorPressed to true for decimal button cases
-	// If its false then it would allow for ". + 3" which would cause an issue since there is no number to operate on
+	// Defaults wasOperatorPressed to true so some buttons cannot be clicked due to needing to pass
+	// an if check in which they need wasOperatorPressed = false;
 	wasOperaterPressed = true;
 }
 
