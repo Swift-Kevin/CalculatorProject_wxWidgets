@@ -2,9 +2,12 @@
 #include "wx/tokenzr.h"
 #include <queue>
 #include <sstream>
+#include "ButtonFactory.h"
 
 class Window : public wxFrame
 {
+	ButtonFactory buttonFactoryObj;
+
 	wxBoxSizer* mainBox = nullptr;
 	wxBoxSizer* textBoxRow = nullptr;
 	wxBoxSizer* row1 = nullptr;
@@ -13,8 +16,9 @@ class Window : public wxFrame
 	wxBoxSizer* row4 = nullptr;
 	wxBoxSizer* row5 = nullptr;
 	wxBoxSizer* row6 = nullptr;
+	std::vector<wxBoxSizer*> vecBoxSizers;
 
-	wxFont* genericFont = nullptr;
+	wxFont genericFont;
 
 	wxButton* btnNum1 = nullptr;
 	wxButton* btnNum2 = nullptr;
@@ -40,7 +44,9 @@ class Window : public wxFrame
 	wxButton* btnBackspace = nullptr;
 	wxButton* btnClear = nullptr;
 	wxTextCtrl* mainTextBox = nullptr;
+	std::vector<wxButton*> vecButtons;
 
+	std::vector<bool> vecButtonEnabling;
 	std::string parseString;
 	std::vector<std::string> tokens;
 	std::queue<float> operandsQueue;

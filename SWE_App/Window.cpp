@@ -63,6 +63,7 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 
 #pragma region Setting wxBoxSizers, wxButtons, and wxFont to defaults
 
+	// Set all the wxBoxSizer elements to be their appropriate orientation
 	mainBox = new wxBoxSizer(wxVERTICAL);
 	textBoxRow = new wxBoxSizer(wxHORIZONTAL);
 	row1 = new wxBoxSizer(wxHORIZONTAL);
@@ -71,173 +72,57 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	row4 = new wxBoxSizer(wxHORIZONTAL);
 	row5 = new wxBoxSizer(wxHORIZONTAL);
 	row6 = new wxBoxSizer(wxHORIZONTAL);
-
-	genericFont = new wxFont(GetSize().x / 20, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-
-	// The text are not the same size as the other elements
+	// Now that they are all initialized, insert them into the vector of box sizer ptrs 
+	vecBoxSizers = { mainBox, textBoxRow, row1, row2, row3, row4, row5, row6 };
+	
+	// Create a generic Font variable so we can make the font fancy in the calculator
+	genericFont = wxFont(GetSize().x / 20, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 	mainTextBox = new wxTextCtrl(this, IDTable::mainTextBox, "", wxDefaultPosition, wxSize(GetSize().x - (GetSize().x / 12), GetSize().y / 7));
+	mainTextBox->SetFont(genericFont);
 
-	btnEquals = new wxButton(this, IDTable::btnEquals, "=", wxDefaultPosition, normalButtonSize);
-	btnNum1 = new wxButton(this, IDTable::btnNum1, "1", wxDefaultPosition, normalButtonSize);
-	btnNum2 = new wxButton(this, IDTable::btnNum2, "2", wxDefaultPosition, normalButtonSize);
-	btnNum3 = new wxButton(this, IDTable::btnNum3, "3", wxDefaultPosition, normalButtonSize);
-	btnNum4 = new wxButton(this, IDTable::btnNum4, "4", wxDefaultPosition, normalButtonSize);
-	btnNum5 = new wxButton(this, IDTable::btnNum5, "5", wxDefaultPosition, normalButtonSize);
-	btnNum6 = new wxButton(this, IDTable::btnNum6, "6", wxDefaultPosition, normalButtonSize);
-	btnNum7 = new wxButton(this, IDTable::btnNum7, "7", wxDefaultPosition, normalButtonSize);
-	btnNum8 = new wxButton(this, IDTable::btnNum8, "8", wxDefaultPosition, normalButtonSize);
-	btnNum9 = new wxButton(this, IDTable::btnNum9, "9", wxDefaultPosition, normalButtonSize);
-	btnNum0 = new wxButton(this, IDTable::btnNum0, "0", wxDefaultPosition, normalButtonSize);
-	btnAdd = new wxButton(this, IDTable::btnAdd, "+", wxDefaultPosition, normalButtonSize);
-	btnSubtract = new wxButton(this, IDTable::btnSubtract, "-", wxDefaultPosition, normalButtonSize);
-	btnMultiply = new wxButton(this, IDTable::btnMultiply, "*", wxDefaultPosition, normalButtonSize);
-	btnDivide = new wxButton(this, IDTable::btnDivide, "/", wxDefaultPosition, normalButtonSize);
-	btnMod = new wxButton(this, IDTable::btnMod, "%", wxDefaultPosition, normalButtonSize);
-	btnSIN = new wxButton(this, IDTable::btnSIN, "SIN", wxDefaultPosition, normalButtonSize);
-	btnCOS = new wxButton(this, IDTable::btnCOS, "COS", wxDefaultPosition, normalButtonSize);
-	btnTAN = new wxButton(this, IDTable::btnTAN, "TAN", wxDefaultPosition, normalButtonSize);
-	btnDecimal = new wxButton(this, IDTable::btnDecimal, "deci", wxDefaultPosition, normalButtonSize);
-	btnNegative = new wxButton(this, IDTable::btnNegative, "neg", wxDefaultPosition, normalButtonSize);
-	btnBackspace = new wxButton(this, IDTable::btnBackspace, "<-", wxDefaultPosition, normalButtonSize);
-	btnClear = new wxButton(this, IDTable::btnClear, "C", wxDefaultPosition, normalButtonSize);
-
+	// Use the button factory object to create all the buttons, they all follow the same layout so
+	// we can use the same CreateButton method to initialize them all
+	btnNum0 = buttonFactoryObj.CreateButton(this, IDTable::btnNum0, "0", normalButtonSize);
+	btnNum1 = buttonFactoryObj.CreateButton(this, IDTable::btnNum1, "1", normalButtonSize);
+	btnNum2 = buttonFactoryObj.CreateButton(this, IDTable::btnNum2, "2", normalButtonSize);
+	btnNum3 = buttonFactoryObj.CreateButton(this, IDTable::btnNum3, "3", normalButtonSize);
+	btnNum4 = buttonFactoryObj.CreateButton(this, IDTable::btnNum4, "4", normalButtonSize);
+	btnNum5 = buttonFactoryObj.CreateButton(this, IDTable::btnNum5, "5", normalButtonSize);
+	btnNum6 = buttonFactoryObj.CreateButton(this, IDTable::btnNum6, "6", normalButtonSize);
+	btnNum7 = buttonFactoryObj.CreateButton(this, IDTable::btnNum7, "7", normalButtonSize);
+	btnNum8 = buttonFactoryObj.CreateButton(this, IDTable::btnNum8, "8", normalButtonSize);
+	btnNum9 = buttonFactoryObj.CreateButton(this, IDTable::btnNum9, "9", normalButtonSize);
+	btnEquals = buttonFactoryObj.CreateButton(this, IDTable::btnEquals, "=", normalButtonSize);
+	btnAdd = buttonFactoryObj.CreateButton(this, IDTable::btnAdd, "+", normalButtonSize);
+	btnSubtract = buttonFactoryObj.CreateButton(this, IDTable::btnSubtract, "-", normalButtonSize);
+	btnMultiply = buttonFactoryObj.CreateButton(this, IDTable::btnMultiply, "*", normalButtonSize);
+	btnDivide = buttonFactoryObj.CreateButton(this, IDTable::btnDivide, "/", normalButtonSize);
+	btnMod = buttonFactoryObj.CreateButton(this, IDTable::btnMod, "%", normalButtonSize);
+	btnSIN = buttonFactoryObj.CreateButton(this, IDTable::btnSIN, "SIN", normalButtonSize);
+	btnCOS = buttonFactoryObj.CreateButton(this, IDTable::btnCOS, "COS", normalButtonSize);
+	btnTAN = buttonFactoryObj.CreateButton(this, IDTable::btnTAN, "TAN", normalButtonSize);
+	btnDecimal = buttonFactoryObj.CreateButton(this, IDTable::btnDecimal, ".", normalButtonSize);
+	btnNegative = buttonFactoryObj.CreateButton(this, IDTable::btnNegative, "~", normalButtonSize);
+	btnBackspace =buttonFactoryObj.CreateButton(this, IDTable::btnBackspace, "<-", normalButtonSize);
+	btnClear = buttonFactoryObj.CreateButton(this, IDTable::btnClear, "C", normalButtonSize);
+	// Now all buttons are initialized we can put them into the vector in one line, instead of push_back'ing every element
+	vecButtons = { btnNum1, btnNum2, btnNum3, btnNum4, btnNum5, btnNum6, btnNum7, btnNum8, btnNum9, btnNum0, btnEquals, btnAdd, btnSubtract, btnMultiply, btnDivide, btnMod, btnSIN, btnCOS, btnTAN, btnDecimal, btnNegative, btnBackspace, btnClear };
 #pragma endregion
 
-#pragma region Button Font
-	btnNum1->SetFont(*genericFont);
-	btnNum2->SetFont(*genericFont);
-	btnNum3->SetFont(*genericFont);
-	btnNum4->SetFont(*genericFont);
-	btnNum5->SetFont(*genericFont);
-	btnNum6->SetFont(*genericFont);
-	btnNum7->SetFont(*genericFont);
-	btnNum8->SetFont(*genericFont);
-	btnNum9->SetFont(*genericFont);
-	btnNum0->SetFont(*genericFont);
-	btnEquals->SetFont(*genericFont);
-	btnAdd->SetFont(*genericFont);
-	btnSubtract->SetFont(*genericFont);
-	btnMultiply->SetFont(*genericFont);
-	btnDivide->SetFont(*genericFont);
-	btnMod->SetFont(*genericFont);
-	btnSIN->SetFont(*genericFont);
-	btnCOS->SetFont(*genericFont);
-	btnTAN->SetFont(*genericFont);
-	btnDecimal->SetFont(*genericFont);
-	btnNegative->SetFont(*genericFont);
-	btnBackspace->SetFont(*genericFont);
-	btnClear->SetFont(*genericFont);
-	mainTextBox->SetFont(*genericFont);
-#pragma endregion
+	// Use the button factory's SetButtonsFont method to put all buttons to the fonts type
+	buttonFactoryObj.SetButtonsFont(genericFont, vecButtons);
 
-#pragma region Set Spacers and Box Size positions for Buttons in Calculator
-
+	// Set Spacers and Box Size positions for Buttons in Calculator
 	int spacerSize = GetSize().x / 25;
-
-	mainBox->AddSpacer(spacerSize);
-
-	textBoxRow->AddSpacer(10);
-	textBoxRow->Add(mainTextBox);
-	mainBox->Add(textBoxRow);
-
-	row1->AddSpacer(10);
-	row1->Add(btnSIN);
-	row1->AddSpacer(spacerSize);
-	row1->Add(btnCOS);
-	row1->AddSpacer(spacerSize);
-	row1->Add(btnTAN);
-	row1->AddSpacer(spacerSize);
-	row1->Add(btnMultiply);
-	row1->AddSpacer(10);
-	mainBox->AddSpacer(10);
-	mainBox->Add(row1);
-
-	row2->AddSpacer(10);
-	row2->Add(btnDecimal);
-	row2->AddSpacer(spacerSize);
-	row2->Add(btnNegative);
-	row2->AddSpacer(spacerSize);
-	row2->Add(btnMod);
-	row2->AddSpacer(spacerSize);
-	row2->Add(btnDivide);
-	row2->AddSpacer(10);
-	mainBox->AddSpacer(10);
-	mainBox->Add(row2);
-
-	row3->AddSpacer(10);
-	row3->Add(btnNum7);
-	row3->AddSpacer(spacerSize);
-	row3->Add(btnNum8);
-	row3->AddSpacer(spacerSize);
-	row3->Add(btnNum9);
-	row3->AddSpacer(spacerSize);
-	row3->Add(btnSubtract);
-	row3->AddSpacer(10);
-	mainBox->AddSpacer(10);
-	mainBox->Add(row3);
-
-	row4->AddSpacer(10);
-	row4->Add(btnNum4);
-	row4->AddSpacer(spacerSize);
-	row4->Add(btnNum5);
-	row4->AddSpacer(spacerSize);
-	row4->Add(btnNum6);
-	row4->AddSpacer(spacerSize);
-	row4->Add(btnAdd);
-	row4->AddSpacer(10);
-	mainBox->AddSpacer(10);
-	mainBox->Add(row4);
-
-	row5->AddSpacer(10);
-	row5->Add(btnNum1);
-	row5->AddSpacer(spacerSize);
-	row5->Add(btnNum2);
-	row5->AddSpacer(spacerSize);
-	row5->Add(btnNum3);
-	row5->AddSpacer(spacerSize);
-	row5->Add(btnEquals);
-	row5->AddSpacer(10);
-	mainBox->AddSpacer(10);
-	mainBox->Add(row5);
-
-	row6->AddSpacer(10);
-	row6->Add(btnClear);
-	row6->AddSpacer(spacerSize);
-	row6->Add(btnNum0);
-	row6->AddSpacer(spacerSize);
-	row6->Add(btnBackspace);
-	row6->AddSpacer(10);
-	mainBox->AddSpacer(10);
-	mainBox->Add(row6);
-	mainBox->AddSpacer(10);
-#pragma endregion
+	buttonFactoryObj.SetButtonsSpacers(spacerSize, vecBoxSizers, *mainTextBox, vecButtons);
 
 #pragma region Button Enabling / Disabling
-	// Button Enabled/Disabled
-	btnNum1->Enable(true);
-	btnNum2->Enable(true);
-	btnNum3->Enable(true);
-	btnNum4->Enable(true);
-	btnNum5->Enable(true);
-	btnNum6->Enable(true);
-	btnNum7->Enable(true);
-	btnNum8->Enable(true);
-	btnNum9->Enable(true);
-	btnNum0->Enable(true);
-	btnEquals->Enable(true);
-	btnAdd->Enable(true);
-	btnSubtract->Enable(true);
-	btnMultiply->Enable(true);
-	btnDivide->Enable(true);
-	btnMod->Enable(true);
-	btnSIN->Enable(false);
-	btnCOS->Enable(false);
-	btnTAN->Enable(false);
-	btnDecimal->Enable(true);
-	btnNegative->Enable(true);
-	btnBackspace->Enable(true);
-	btnClear->Enable(true);
 
+	//				      '1'   '2'   '3'   '4'   '5'   '6'   '7'   '8'   '9'   '0'   '='   '+'   '-'   '*'   '/'   '%'   'SIN'  'COS'  'TAN'  '.'   '~'   '<-'  'C'      
+	vecButtonEnabling = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, false, true, true, true, true };
+	// Button Enabled/Disabled
+	buttonFactoryObj.SetButtonsEnabled(vecButtons, vecButtonEnabling);
+	
 #pragma endregion
 	// Sets the box sizers to work properly
 	SetSizerAndFit(mainBox);
