@@ -1,16 +1,64 @@
 #include "ButtonFactory.h"
-
-wxButton* ButtonFactory::CreateButton(wxWindow* _parentPTR, int _id, std::string _displayNum, wxSize& _buttonSize, const wxPoint& _position)
+enum IDTable
 {
-	return new wxButton(_parentPTR, _id, _displayNum, _position, _buttonSize);
+	btnNum1 = 10001,
+	btnNum2,
+	btnNum3,
+	btnNum4,
+	btnNum5,
+	btnNum6,
+	btnNum7,
+	btnNum8,
+	btnNum9,
+	btnNum0,
+	btnEquals,
+	btnAdd,
+	btnSubtract,
+	btnMultiply,
+	btnDivide,
+	btnMod,
+	btnSIN,
+	btnCOS,
+	btnTAN,
+	btnDecimal,
+	btnNegative,
+	btnBackspace,
+	btnClear,
+	mainTextBox
+};
+
+void ButtonFactory::CreateButtons(wxWindow* _parentPTR, std::vector<wxButton*>& _vecButtons, wxSize& _buttonSize)
+{
+	_vecButtons[0] = new wxButton(_parentPTR, IDTable::btnNum0, "0", wxDefaultPosition, _buttonSize);
+	_vecButtons[1] = new wxButton(_parentPTR, IDTable::btnNum1, "1", wxDefaultPosition, _buttonSize);
+	_vecButtons[2] = new wxButton(_parentPTR, IDTable::btnNum2, "2", wxDefaultPosition, _buttonSize);
+	_vecButtons[3] = new wxButton(_parentPTR, IDTable::btnNum3, "3", wxDefaultPosition, _buttonSize);
+	_vecButtons[4] = new wxButton(_parentPTR, IDTable::btnNum4, "4", wxDefaultPosition, _buttonSize);
+	_vecButtons[5] = new wxButton(_parentPTR, IDTable::btnNum5, "5", wxDefaultPosition, _buttonSize);
+	_vecButtons[6] = new wxButton(_parentPTR, IDTable::btnNum6, "6", wxDefaultPosition, _buttonSize);
+	_vecButtons[7] = new wxButton(_parentPTR, IDTable::btnNum7, "7", wxDefaultPosition, _buttonSize);
+	_vecButtons[8] = new wxButton(_parentPTR, IDTable::btnNum8, "8", wxDefaultPosition, _buttonSize);
+	_vecButtons[9] = new wxButton(_parentPTR, IDTable::btnNum9, "9", wxDefaultPosition, _buttonSize);
+	_vecButtons[10] = new wxButton(_parentPTR, IDTable::btnEquals, "=", wxDefaultPosition, _buttonSize);
+	_vecButtons[11] = new wxButton(_parentPTR, IDTable::btnAdd, "+", wxDefaultPosition, _buttonSize);
+	_vecButtons[12] = new wxButton(_parentPTR, IDTable::btnSubtract, "-", wxDefaultPosition, _buttonSize);
+	_vecButtons[13] = new wxButton(_parentPTR, IDTable::btnMultiply, "*", wxDefaultPosition, _buttonSize);
+	_vecButtons[14] = new wxButton(_parentPTR, IDTable::btnDivide, "/", wxDefaultPosition, _buttonSize);
+	_vecButtons[15] = new wxButton(_parentPTR, IDTable::btnMod,  "%", wxDefaultPosition, _buttonSize);
+	_vecButtons[16] = new wxButton(_parentPTR, IDTable::btnSIN, "SIN", wxDefaultPosition, _buttonSize);
+	_vecButtons[17] = new wxButton(_parentPTR, IDTable::btnCOS, "COS" , wxDefaultPosition, _buttonSize);
+	_vecButtons[18] = new wxButton(_parentPTR, IDTable::btnTAN, "TAN", wxDefaultPosition, _buttonSize);
+	_vecButtons[19] = new wxButton(_parentPTR, IDTable::btnDecimal, ".", wxDefaultPosition, _buttonSize);
+	_vecButtons[20] = new wxButton(_parentPTR, IDTable::btnNegative, "~", wxDefaultPosition, _buttonSize);
+	_vecButtons[21] = new wxButton(_parentPTR, IDTable::btnBackspace, "<-", wxDefaultPosition, _buttonSize);
+	_vecButtons[22] = new wxButton(_parentPTR, IDTable::btnClear, "C", wxDefaultPosition, _buttonSize);
 }
 
 void ButtonFactory::SetButtonsFont(wxFont _fontReference, std::vector<wxButton*> _vecButtons)
 {
 	for (size_t i = 0; i < _vecButtons.size(); ++i)
-	{
 		_vecButtons[i]->SetFont(_fontReference);
-	}
+	
 }
 
 void ButtonFactory::SetButtonsSpacers(int _spacerSize, std::vector<wxBoxSizer*> _sizers, wxTextCtrl& _mainTextBox, std::vector<wxButton*> _buttons)

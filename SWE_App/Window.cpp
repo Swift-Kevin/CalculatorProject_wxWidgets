@@ -82,33 +82,13 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 
 	// Use the button factory object to create all the buttons, they all follow the same layout so
 	// we can use the same CreateButton method to initialize them all
-	btnNum0 = buttonFactoryObj.CreateButton(this, IDTable::btnNum0, "0", normalButtonSize);
-	btnNum1 = buttonFactoryObj.CreateButton(this, IDTable::btnNum1, "1", normalButtonSize);
-	btnNum2 = buttonFactoryObj.CreateButton(this, IDTable::btnNum2, "2", normalButtonSize);
-	btnNum3 = buttonFactoryObj.CreateButton(this, IDTable::btnNum3, "3", normalButtonSize);
-	btnNum4 = buttonFactoryObj.CreateButton(this, IDTable::btnNum4, "4", normalButtonSize);
-	btnNum5 = buttonFactoryObj.CreateButton(this, IDTable::btnNum5, "5", normalButtonSize);
-	btnNum6 = buttonFactoryObj.CreateButton(this, IDTable::btnNum6, "6", normalButtonSize);
-	btnNum7 = buttonFactoryObj.CreateButton(this, IDTable::btnNum7, "7", normalButtonSize);
-	btnNum8 = buttonFactoryObj.CreateButton(this, IDTable::btnNum8, "8", normalButtonSize);
-	btnNum9 = buttonFactoryObj.CreateButton(this, IDTable::btnNum9, "9", normalButtonSize);
-	btnEquals = buttonFactoryObj.CreateButton(this, IDTable::btnEquals, "=", normalButtonSize);
-	btnAdd = buttonFactoryObj.CreateButton(this, IDTable::btnAdd, "+", normalButtonSize);
-	btnSubtract = buttonFactoryObj.CreateButton(this, IDTable::btnSubtract, "-", normalButtonSize);
-	btnMultiply = buttonFactoryObj.CreateButton(this, IDTable::btnMultiply, "*", normalButtonSize);
-	btnDivide = buttonFactoryObj.CreateButton(this, IDTable::btnDivide, "/", normalButtonSize);
-	btnMod = buttonFactoryObj.CreateButton(this, IDTable::btnMod, "%", normalButtonSize);
-	btnSIN = buttonFactoryObj.CreateButton(this, IDTable::btnSIN, "SIN", normalButtonSize);
-	btnCOS = buttonFactoryObj.CreateButton(this, IDTable::btnCOS, "COS", normalButtonSize);
-	btnTAN = buttonFactoryObj.CreateButton(this, IDTable::btnTAN, "TAN", normalButtonSize);
-	btnDecimal = buttonFactoryObj.CreateButton(this, IDTable::btnDecimal, ".", normalButtonSize);
-	btnNegative = buttonFactoryObj.CreateButton(this, IDTable::btnNegative, "~", normalButtonSize);
-	btnBackspace =buttonFactoryObj.CreateButton(this, IDTable::btnBackspace, "<-", normalButtonSize);
-	btnClear = buttonFactoryObj.CreateButton(this, IDTable::btnClear, "C", normalButtonSize);
-	// Now all buttons are initialized we can put them into the vector in one line, instead of push_back'ing every element
+	// First we need to put all the buttons into a vector so we can call them in the factory
 	vecButtons = { btnNum1, btnNum2, btnNum3, btnNum4, btnNum5, btnNum6, btnNum7, btnNum8, btnNum9, btnNum0, btnEquals, btnAdd, btnSubtract, btnMultiply, btnDivide, btnMod, btnSIN, btnCOS, btnTAN, btnDecimal, btnNegative, btnBackspace, btnClear };
+	buttonFactoryObj.CreateButtons(this, vecButtons, normalButtonSize);
+
 #pragma endregion
 
+#pragma region Button Enabling / Disabling / Spacing / Fonts
 	// Use the button factory's SetButtonsFont method to put all buttons to the fonts type
 	buttonFactoryObj.SetButtonsFont(genericFont, vecButtons);
 
@@ -116,14 +96,13 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	int spacerSize = GetSize().x / 25;
 	buttonFactoryObj.SetButtonsSpacers(spacerSize, vecBoxSizers, *mainTextBox, vecButtons);
 
-#pragma region Button Enabling / Disabling
-
 	//				      '1'   '2'   '3'   '4'   '5'   '6'   '7'   '8'   '9'   '0'   '='   '+'   '-'   '*'   '/'   '%'   'SIN'  'COS'  'TAN'  '.'   '~'   '<-'  'C'      
 	vecButtonEnabling = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, false, true, true, true, true };
 	// Button Enabled/Disabled
 	buttonFactoryObj.SetButtonsEnabled(vecButtons, vecButtonEnabling);
 	
 #pragma endregion
+
 	// Sets the box sizers to work properly
 	SetSizerAndFit(mainBox);
 	// Defaults wasOperatorPressed to true so some buttons cannot be clicked due to needing to pass
