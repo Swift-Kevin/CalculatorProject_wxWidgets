@@ -29,7 +29,6 @@ enum IDTable
 
 void ButtonFactory::CreateButtons(wxWindow* _parentPTR, std::vector<wxButton*>& _vecButtons, wxSize& _buttonSize)
 {
-	_vecButtons[0] = new wxButton(_parentPTR, IDTable::btnNum0, "0", wxDefaultPosition, _buttonSize);
 	_vecButtons[1] = new wxButton(_parentPTR, IDTable::btnNum1, "1", wxDefaultPosition, _buttonSize);
 	_vecButtons[2] = new wxButton(_parentPTR, IDTable::btnNum2, "2", wxDefaultPosition, _buttonSize);
 	_vecButtons[3] = new wxButton(_parentPTR, IDTable::btnNum3, "3", wxDefaultPosition, _buttonSize);
@@ -39,6 +38,7 @@ void ButtonFactory::CreateButtons(wxWindow* _parentPTR, std::vector<wxButton*>& 
 	_vecButtons[7] = new wxButton(_parentPTR, IDTable::btnNum7, "7", wxDefaultPosition, _buttonSize);
 	_vecButtons[8] = new wxButton(_parentPTR, IDTable::btnNum8, "8", wxDefaultPosition, _buttonSize);
 	_vecButtons[9] = new wxButton(_parentPTR, IDTable::btnNum9, "9", wxDefaultPosition, _buttonSize);
+	_vecButtons[0] = new wxButton(_parentPTR, IDTable::btnNum0, "0", wxDefaultPosition, _buttonSize);
 	_vecButtons[10] = new wxButton(_parentPTR, IDTable::btnEquals, "=", wxDefaultPosition, _buttonSize);
 	_vecButtons[11] = new wxButton(_parentPTR, IDTable::btnAdd, "+", wxDefaultPosition, _buttonSize);
 	_vecButtons[12] = new wxButton(_parentPTR, IDTable::btnSubtract, "-", wxDefaultPosition, _buttonSize);
@@ -103,11 +103,11 @@ void ButtonFactory::SetButtonsSpacers(int _spacerSize, std::vector<wxBoxSizer*> 
 	bFMainBox->Add(bfRow2);
 
 	bfRow3->AddSpacer(10);
-	bfRow3->Add(_buttons[6]);
-	bfRow3->AddSpacer(_spacerSize);
 	bfRow3->Add(_buttons[7]);
 	bfRow3->AddSpacer(_spacerSize);
 	bfRow3->Add(_buttons[8]);
+	bfRow3->AddSpacer(_spacerSize);
+	bfRow3->Add(_buttons[9]);
 	bfRow3->AddSpacer(_spacerSize);
 	bfRow3->Add(_buttons[12]);
 	bfRow3->AddSpacer(10);
@@ -115,11 +115,11 @@ void ButtonFactory::SetButtonsSpacers(int _spacerSize, std::vector<wxBoxSizer*> 
 	bFMainBox->Add(bfRow3);
 
 	bfRow4->AddSpacer(10);
-	bfRow4->Add(_buttons[3]);
-	bfRow4->AddSpacer(_spacerSize);
 	bfRow4->Add(_buttons[4]);
 	bfRow4->AddSpacer(_spacerSize);
 	bfRow4->Add(_buttons[5]);
+	bfRow4->AddSpacer(_spacerSize);
+	bfRow4->Add(_buttons[6]);
 	bfRow4->AddSpacer(_spacerSize);
 	bfRow4->Add(_buttons[11]);
 	bfRow4->AddSpacer(10);
@@ -127,11 +127,11 @@ void ButtonFactory::SetButtonsSpacers(int _spacerSize, std::vector<wxBoxSizer*> 
 	bFMainBox->Add(bfRow4);
 
 	bfRow5->AddSpacer(10);
-	bfRow5->Add(_buttons[0]);
-	bfRow5->AddSpacer(_spacerSize);
 	bfRow5->Add(_buttons[1]);
 	bfRow5->AddSpacer(_spacerSize);
 	bfRow5->Add(_buttons[2]);
+	bfRow5->AddSpacer(_spacerSize);
+	bfRow5->Add(_buttons[3]);
 	bfRow5->AddSpacer(_spacerSize);
 	bfRow5->Add(_buttons[10]);
 	bfRow5->AddSpacer(10);
@@ -141,7 +141,7 @@ void ButtonFactory::SetButtonsSpacers(int _spacerSize, std::vector<wxBoxSizer*> 
 	bfRow6->AddSpacer(10);
 	bfRow6->Add(_buttons[22]);
 	bfRow6->AddSpacer(_spacerSize);
-	bfRow6->Add(_buttons[9]);
+	bfRow6->Add(_buttons[0]);
 	bfRow6->AddSpacer(_spacerSize);
 	bfRow6->Add(_buttons[21]);
 	bfRow6->AddSpacer(10);

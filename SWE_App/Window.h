@@ -1,8 +1,11 @@
 #include "wx/wx.h"
 #include "wx/tokenzr.h"
+#include "ButtonFactory.h"
 #include <queue>
 #include <sstream>
-#include "ButtonFactory.h"
+#include <list>
+
+class CalculatorProcessor;
 
 class Window : public wxFrame
 {
@@ -52,7 +55,7 @@ class Window : public wxFrame
 	std::queue<float> operandsQueue;
 	std::queue<char> operatorsQueue;
 
-	bool wasOperaterPressed, wasEqualsPressed, wasNumberPressed, wasNegationPressed, wasDecimalPressed;
+	bool wasOperaterPressed, wasEqualsPressed, wasNumberPressed, wasNegationPressed, wasDecimalPressed, removedSpace;
 	int charIndex = 0;
 	wxString displayAns= " ";
 	float num1, num2, answer = 0;
@@ -66,6 +69,8 @@ public:
 	void SetButtonNumTo(wxString _string);
 	void CreateTokens(); 
 	int CountCharInLastToken(char _charToCheckFor);
+	void CheckOperator();
+	void NegativeCase();
 
 	wxDECLARE_EVENT_TABLE();
 };
