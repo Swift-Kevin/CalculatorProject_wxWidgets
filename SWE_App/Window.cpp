@@ -28,6 +28,7 @@ enum IDTable
 	mainTextBox
 };
 
+
 #pragma region Event Table
 wxBEGIN_EVENT_TABLE(Window, wxFrame)
 EVT_BUTTON(IDTable::btnNum1, Window::OnButtonClick)
@@ -96,7 +97,7 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	buttonFactoryObj.SetButtonsSpacers(spacerSize, vecBoxSizers, *mainTextBox, vecButtons);
 
 	//				      '1'   '2'   '3'   '4'   '5'   '6'   '7'   '8'   '9'   '0'   '='   '+'   '-'   '*'   '/'   '%'   'SIN'  'COS'  'TAN'  '.'   '~'   '<-'  'C'      
-	vecButtonEnabling = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, false, true, true, true, true };
+	vecButtonEnabling = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };
 	// Button Enabled/Disabled
 	buttonFactoryObj.SetButtonsEnabled(vecButtons, vecButtonEnabling);
 
@@ -129,13 +130,14 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	{
 		// Ex: "3 + " stops this from running and instead forces the user to input a number
 		displayAns = mainTextBox->GetValue().ToStdString();
-		if (wasOperaterPressed)
-		{
-			mainTextBox->AppendText("0");
-		}
-		parseString = mainTextBox->GetValue().ToStdString();
-		ParseStringCalculate();
-		mainTextBox->SetLabel(displayAns);
+		
+		std::string needsFixing = mainTextBox->GetValue().ToStdString();
+
+		CalculatorProcessor* instance = CalculatorProcessor::GetInstance();
+		instance->GetInstance()->FixOperators(needsFixing, tokens);
+		instance->GetInstance()->CreateAndCalcTokens(needsFixing, calculatorDisplayAns);
+		
+		mainTextBox->SetLabel(calculatorDisplayAns);
 		wasOperaterPressed = wasEqualsPressed = true;
 		break;
 	}
@@ -148,17 +150,18 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 #pragma region Trig Buttons
 	case IDTable::btnSIN:
-		// Don't implement just yet, waiting on more details from Chris L. about this function.
+		mainTextBox->AppendText("s");
 		break;
 
 	case IDTable::btnCOS:
-		// Don't implement just yet, waiting on more details from Chris L. about this function.
+		mainTextBox->AppendText("c");
 		break;
 
 	case IDTable::btnTAN:
-		// Don't implement just yet, waiting on more details from Chris L. about this function.
+		mainTextBox->AppendText("t");
 		break;
 #pragma endregion
+
 #pragma region Decimal | Negative | BackSpace | Clear Buttons
 	case IDTable::btnDecimal:
 	{
@@ -224,9 +227,11 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	}
 }
 
-void Window::ParseStringCalculate()
+std::string Window::ParseSymbolsInString()
 {
-	CreateTokens();
+	parsedAdjustedString = " ";
+	parseString = mainTextBox->GetValue().ToStdString();
+	CalculatorProcessor::GetInstance()->CreateTokens(parseString, tokens);
 
 	for (size_t i = 0; i < tokens.size(); ++i)
 	{
@@ -236,49 +241,16 @@ void Window::ParseStringCalculate()
 		if (tokens[i].size() == 1 && tokens[i][0] == '.')
 			tokens[i] = '0';
 
-		if (tokens[i].size() == 1 && tokens[i][0] == '-')
-			tokens[i] = '0';
-
 		if (tokens[i].size() == 2 && tokens[i][0] == '-' && tokens[i][1] == '.')
 			tokens[i] = '0';
+		else if (tokens[i].size() > 2 && tokens[i][0] == '-' && tokens[i][1] == '.')
+			tokens[i].insert(1, 2, '0');
 	}
+	
+	for (size_t i = 0; i < tokens.size(); ++i)
+		parsedAdjustedString += tokens[i];
 
-	if (tokens.size() < 3) return;
-
-	// Stores the tokens at the first, second, and third values as
-	// ints and a char (ascii val)
-	num1 = std::stof(tokens[0]);
-	operational = *tokens[1].c_str();
-	num2 = std::stof(tokens[2]);
-
-	switch (operational)
-	{
-	case '%':
-		if (num1 < 1 || num2 < 1)
-			answer = 0;
-		else answer = (int)num1 % (int)num2;
-		break;
-	case '*':
-		answer = num1 * num2;
-		break;
-	case '+':
-		answer = num1 + num2;
-		break;
-	case '-':
-		answer = num1 - num2;
-		break;
-	case '/':
-		answer = num1 / num2;
-		break;
-	}
-
-
-	if ((int)answer == answer)
-		displayAns = std::to_string((int)answer);
-	else displayAns = std::to_string(answer);
-
-	if (answer < 0)
-		displayAns[0] = '~';
+	return parsedAdjustedString.ToStdString();
 }
 
 void Window::ChangeSymbolInParsedString(wxString _string)
@@ -327,29 +299,11 @@ void Window::SetButtonNumTo(wxString _string)
 	wasNumberPressed = true;
 }
 
-void Window::CreateTokens()
-{
-	wasEqualsPressed = false;
-	tokens.clear();
-	std::stringstream lineStream(mainTextBox->GetValue().ToStdString());
-
-	std::string secondaryStringToParseWith;
-
-	// Collects all tokens in the string from mainTextBox
-	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
-	{
-		if (secondaryStringToParseWith == "")
-			continue;
-		else
-			tokens.push_back(secondaryStringToParseWith);
-	}
-
-}
-
 int Window::CountCharInLastToken(char _charToCheckFor)
 {
 	int characterAbundanceCount = 0;
-	CreateTokens();
+	std::string passIntoCreate = mainTextBox->GetValue().ToStdString();
+	CalculatorProcessor::GetInstance()->CreateTokens(passIntoCreate, tokens);
 
 	if (tokens.size() == 0)
 	{
@@ -390,6 +344,7 @@ void Window::CheckOperator()
 
 void Window::NegativeCase()
 {
+	parseString = mainTextBox->GetValue().ToStdString();
 	if (mainTextBox->GetValue().ToStdString().size() > 2)
 	{
 		std::string lastChars = mainTextBox->GetValue().ToStdString().substr(mainTextBox->GetValue().ToStdString().size() - 2);
@@ -408,7 +363,7 @@ void Window::NegativeCase()
 			removeEmptySpace.RemoveLast();
 			mainTextBox->SetLabel(removeEmptySpace);
 
-			CreateTokens();
+			CalculatorProcessor::GetInstance()->CreateTokens(parseString, tokens);
 
 			wxString alterNegative;
 
@@ -433,15 +388,26 @@ void Window::NegativeCase()
 	else if (wasEqualsPressed)
 	{
 		wxString alterNegative = "";
-		CreateTokens();
 
-		for (size_t i = 0; i < tokens.size() - 1; ++i)
-			alterNegative += tokens[i] + " ";
+		CalculatorProcessor::GetInstance()->CreateTokens(parseString, tokens);
 
-		tokens[tokens.size() - 1].erase(0, 1);
-		alterNegative += tokens[tokens.size() - 1];
+		if (tokens.size() < 1)
+			tokens.push_back(mainTextBox->GetValue().ToStdString());
+		
+		if (tokens[0][0] == '~')
+			tokens[0].erase(0, 1);
+		else
+		{
+			for (size_t i = 0; i < tokens.size() - 1; ++i)
+					alterNegative += tokens[i] + " ";
 
-		mainTextBox->SetLabelText(alterNegative);
+			//if (tokens[0][0] == '~')
+				tokens[tokens.size() - 1].erase(0, 1);
+			alterNegative += tokens[tokens.size() - 1];
+
+			mainTextBox->SetLabelText(alterNegative);
+		}
+
 		wasEqualsPressed = wasOperaterPressed = false;
 	}
 	else if (CountCharInLastToken('~') == 1)
@@ -480,4 +446,67 @@ void Window::NegativeCase()
 		fixNegative += tokens[tokens.size() - 1];
 		mainTextBox->SetLabel(fixNegative);
 	}
+
+	wasEqualsPressed = false;
+}
+
+void Window::FixSymbols(std::string& _stringToRead)
+{
+	std::string tempReadString = " ";
+	bool startCharOperatorOrSpace = true;
+	bool endCharOperatorOrSpace = true;
+	int countOfOperators = 0;
+
+	// Loop through and make sure to remove all ' ' or operators at the beginning
+	// if there are no numbers to go off of.
+	while (startCharOperatorOrSpace)
+	{
+		if (_stringToRead[0] == '+' || _stringToRead[0] == '-' ||
+			_stringToRead[0] == '*' || _stringToRead[0] == '/' ||
+			_stringToRead[0] == '%' || _stringToRead[0] == ' ')
+		{
+			tempReadString = _stringToRead;
+			tempReadString.erase(0, 1);
+			_stringToRead = tempReadString;
+		}
+		else startCharOperatorOrSpace = false;
+	}
+
+	for (size_t i = 0; i < _stringToRead.size(); ++i)
+	{
+		if (_stringToRead[i] == '+' || _stringToRead[i] == '-' ||
+			_stringToRead[i] == '*' || _stringToRead[i] == '/' ||
+			_stringToRead[i] == '%')
+		{
+			if (_stringToRead[i + 1] != ' ')
+			{
+				_stringToRead.insert(i + 1, i + 1, ' ');
+				--i;
+				continue;
+			}
+			else if (_stringToRead[i - 1] != ' ')
+			{
+				_stringToRead.insert(--i, ++i, ' ');
+				--i;
+			}
+		}
+	}
+
+	// Go back through and make sure there are none at the end aswell.
+	while (endCharOperatorOrSpace)
+	{
+		if (_stringToRead[_stringToRead.size() - 1] == '+' || _stringToRead[_stringToRead.size() - 1] == '-' ||
+			_stringToRead[_stringToRead.size() - 1] == '*' || _stringToRead[_stringToRead.size() - 1] == '/' ||
+			_stringToRead[_stringToRead.size() - 1] == '%' || _stringToRead[_stringToRead.size() - 1] == ' ')
+			_stringToRead.pop_back(); // takes the last element off if it is an operator or a space
+		else endCharOperatorOrSpace = false;
+	}
+
+	CalculatorProcessor::GetInstance()->CreateTokens(_stringToRead, tokens);
+	_stringToRead = "";
+	for (size_t i = 0; i < tokens.size(); ++i)
+		_stringToRead += tokens[i] + ' ';
+	if (_stringToRead[_stringToRead.size() - 1] == ' ')
+		_stringToRead.pop_back();
+
 }

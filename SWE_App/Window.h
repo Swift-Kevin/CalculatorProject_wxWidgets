@@ -1,14 +1,18 @@
 #include "wx/wx.h"
 #include "wx/tokenzr.h"
 #include "ButtonFactory.h"
+#include "CalculatorProcessor.h"
 #include <queue>
 #include <sstream>
-#include <list>
+#include <unordered_map>
 
 class CalculatorProcessor;
 
 class Window : public wxFrame
 {
+private:
+	//CalculatorProcessor* CalculatorProcessor::instance = nullptr;
+
 	ButtonFactory buttonFactoryObj;
 
 	wxBoxSizer* mainBox = nullptr;
@@ -54,23 +58,27 @@ class Window : public wxFrame
 	std::vector<std::string> tokens;
 	std::queue<float> operandsQueue;
 	std::queue<char> operatorsQueue;
+	std::queue<std::string> functionsQueue;
 
 	bool wasOperaterPressed, wasEqualsPressed, wasNumberPressed, wasNegationPressed, wasDecimalPressed, removedSpace;
 	int charIndex = 0;
-	wxString displayAns= " ";
+	wxString displayAns = " ", parsedAdjustedString = " ";
+	std::string calculatorDisplayAns= " ";
 	float num1, num2, answer = 0;
 	char operational = ' ';
 
 public:
 	Window();
+	std::string ParseSymbolsInString();
 	void OnButtonClick(wxCommandEvent& _event);
-	void ParseStringCalculate();
 	void ChangeSymbolInParsedString(wxString _string);
 	void SetButtonNumTo(wxString _string);
 	void CreateTokens(); 
-	int CountCharInLastToken(char _charToCheckFor);
+	void FixSymbols(std::string& _stringToRead);
 	void CheckOperator();
 	void NegativeCase();
+	int CountCharInLastToken(char _charToCheckFor);
+	
 
 	wxDECLARE_EVENT_TABLE();
 };
