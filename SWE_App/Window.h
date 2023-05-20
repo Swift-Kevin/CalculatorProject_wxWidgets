@@ -69,12 +69,12 @@ private:
 
 public:
 	Window();
-	std::string ParseSymbolsInString();
+	//std::string ParseSymbolsInString();
 	void OnButtonClick(wxCommandEvent& _event);
 	void ChangeSymbolInParsedString(wxString _string);
 	void SetButtonNumTo(wxString _string);
-	void CreateTokens(); 
-	void FixSymbols(std::string& _stringToRead);
+	void CreateTokens();
+	//void FixSymbols(std::string& _stringToRead);
 	void CheckOperator();
 	void NegativeCase();
 	int CountCharInLastToken(char _charToCheckFor);

@@ -55,23 +55,25 @@ void CalculatorProcessor::FixOperators(std::string& _stringToRead, std::vector<s
 	// Go back through and make sure there are none at the end aswell.
 	while (endCharOperatorOrSpace)
 	{
-		if (_stringToRead[_stringToRead.size() - 1] == '+' || _stringToRead[_stringToRead.size() - 1] == '-' ||
+		if (_stringToRead.size() < 1)
+			break;
+		else if (_stringToRead[_stringToRead.size() - 1] == '+' || _stringToRead[_stringToRead.size() - 1] == '-' ||
 			_stringToRead[_stringToRead.size() - 1] == '*' || _stringToRead[_stringToRead.size() - 1] == '/' ||
-			_stringToRead[_stringToRead.size() - 1] == '%' || _stringToRead[_stringToRead.size() - 1] == ' ')
+			_stringToRead[_stringToRead.size() - 1] == '%' || _stringToRead[_stringToRead.size() - 1] == ' ' ||
+			_stringToRead[_stringToRead.size() - 1] == '~' || _stringToRead[_stringToRead.size() - 1] == '.' )
 			_stringToRead.pop_back(); // takes the last element off if it is an operator or a space
 		else endCharOperatorOrSpace = false;
 	}
 
 	CreateTokens(_stringToRead, _tokens);
-	_stringToRead = "";
-	for (size_t i = 0; i < _tokens.size(); ++i)
-		_stringToRead += _tokens[i] + ' ';
-	if (_stringToRead[_stringToRead.size() - 1] == ' ')
-		_stringToRead.pop_back();
+	
 }
 
 void CalculatorProcessor::CreateAndCalcTokens(std::string& _toRead, std::string& _answer)
 {
+	std::vector<std::string> _mockTokens;
+	CalculatorProcessor::CreateTokens(_toRead, _mockTokens);
+
 	std::string passString;
 	std::stringstream lineStream(_toRead);
 	std::stack<std::string> values;
@@ -249,7 +251,9 @@ void CalculatorProcessor::CreateTokens(std::string& _stringToRead, std::vector<s
 
 	for (size_t i = 0; i < _tokens.size(); ++i)
 	{
-		if (_tokens[i][0] == '~')
+		if (_tokens[i].size() == 1 && _tokens[i][0] == '~')
+			_tokens[i][0] = '0';
+		else if (_tokens[i][0] == '~')
 			_tokens[i][0] = '-';
 
 		if (_tokens[i].size() == 1 && _tokens[i][0] == '.')
@@ -260,4 +264,11 @@ void CalculatorProcessor::CreateTokens(std::string& _stringToRead, std::vector<s
 		else if (_tokens[i].size() > 2 && _tokens[i][0] == '-' && _tokens[i][1] == '.')
 			_tokens[i].insert(1, 2, '0');
 	}
+
+	_stringToRead = "";
+	for (size_t i = 0; i < _tokens.size(); ++i)
+		_stringToRead += _tokens[i] + ' ';
+	if (_stringToRead.size() > 0)
+		if (_stringToRead[_stringToRead.size() - 1] == ' ')
+			_stringToRead.pop_back();
 }

@@ -114,6 +114,9 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 {
 	wxButton* evtButton = static_cast<wxButton*>(_event.GetEventObject());
 
+	if (mainTextBox->GetValue().ToStdString() == "Syntax Error")
+		mainTextBox->SetLabelText("");
+
 	switch (evtButton->GetId())
 	{
 #pragma region Appending Number pressed into calculator string
@@ -130,13 +133,19 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	{
 		// Ex: "3 + " stops this from running and instead forces the user to input a number
 		displayAns = mainTextBox->GetValue().ToStdString();
-		
+
 		std::string needsFixing = mainTextBox->GetValue().ToStdString();
 
 		CalculatorProcessor* instance = CalculatorProcessor::GetInstance();
 		instance->GetInstance()->FixOperators(needsFixing, tokens);
+		if (needsFixing == "")
+		{
+			mainTextBox->SetLabel("Syntax Error");
+			return;
+		}
+
 		instance->GetInstance()->CreateAndCalcTokens(needsFixing, calculatorDisplayAns);
-		
+
 		mainTextBox->SetLabel(calculatorDisplayAns);
 		wasOperaterPressed = wasEqualsPressed = true;
 		break;
@@ -227,32 +236,6 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	}
 }
 
-std::string Window::ParseSymbolsInString()
-{
-	parsedAdjustedString = " ";
-	parseString = mainTextBox->GetValue().ToStdString();
-	CalculatorProcessor::GetInstance()->CreateTokens(parseString, tokens);
-
-	for (size_t i = 0; i < tokens.size(); ++i)
-	{
-		if (tokens[i][0] == '~')
-			tokens[i][0] = '-';
-
-		if (tokens[i].size() == 1 && tokens[i][0] == '.')
-			tokens[i] = '0';
-
-		if (tokens[i].size() == 2 && tokens[i][0] == '-' && tokens[i][1] == '.')
-			tokens[i] = '0';
-		else if (tokens[i].size() > 2 && tokens[i][0] == '-' && tokens[i][1] == '.')
-			tokens[i].insert(1, 2, '0');
-	}
-	
-	for (size_t i = 0; i < tokens.size(); ++i)
-		parsedAdjustedString += tokens[i];
-
-	return parsedAdjustedString.ToStdString();
-}
-
 void Window::ChangeSymbolInParsedString(wxString _string)
 {
 	if (wasOperaterPressed)
@@ -292,6 +275,25 @@ void Window::ChangeSymbolInParsedString(wxString _string)
 	wasNumberPressed = wasDecimalPressed = false;
 }
 
+void Window::CreateTokens()
+{
+	wasEqualsPressed = false;
+	tokens.clear();
+	std::stringstream lineStream(mainTextBox->GetValue().ToStdString());
+
+	std::string secondaryStringToParseWith;
+
+	// Collects all tokens in the string from mainTextBox
+	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
+	{
+		if (secondaryStringToParseWith == "")
+			continue;
+		else
+			tokens.push_back(secondaryStringToParseWith);
+	}
+
+}
+
 void Window::SetButtonNumTo(wxString _string)
 {
 	mainTextBox->AppendText(_string);
@@ -302,8 +304,7 @@ void Window::SetButtonNumTo(wxString _string)
 int Window::CountCharInLastToken(char _charToCheckFor)
 {
 	int characterAbundanceCount = 0;
-	std::string passIntoCreate = mainTextBox->GetValue().ToStdString();
-	CalculatorProcessor::GetInstance()->CreateTokens(passIntoCreate, tokens);
+	Window::CreateTokens();
 
 	if (tokens.size() == 0)
 	{
@@ -330,12 +331,14 @@ void Window::CheckOperator()
 	{
 		std::string lastTwoChars = checkForOperator.substr(checkForOperator.size() - 2);
 
-		if (lastTwoChars == " +" || lastTwoChars == "+ " ||
-			lastTwoChars == " -" || lastTwoChars == "- " ||
-			lastTwoChars == " *" || lastTwoChars == "* " ||
-			lastTwoChars == " /" || lastTwoChars == "/ " ||
-			lastTwoChars == " %" || lastTwoChars == "% ")
+		if (lastTwoChars == "+ " || lastTwoChars == "- " || lastTwoChars == "* " || lastTwoChars == "/ " || lastTwoChars == "% ")
 			wasOperaterPressed = true;
+		// If the last two characters are the following then also append a space after
+		else if (lastTwoChars == " +" || lastTwoChars == " -" || lastTwoChars == " *" || lastTwoChars == " /" || lastTwoChars == " %")
+		{
+			wasOperaterPressed = true;
+			lastTwoChars.push_back(' ');
+		}
 
 		if (lastTwoChars == "0." || lastTwoChars == ". ")
 			wasDecimalPressed = true;
@@ -344,169 +347,51 @@ void Window::CheckOperator()
 
 void Window::NegativeCase()
 {
-	parseString = mainTextBox->GetValue().ToStdString();
-	if (mainTextBox->GetValue().ToStdString().size() > 2)
+	Window::CreateTokens();
+	Window::CheckOperator();
+
+	if (tokens.size() < 1)
+		tokens.push_back(mainTextBox->GetValue().ToStdString());
+
+	if (wasOperaterPressed)
 	{
-		std::string lastChars = mainTextBox->GetValue().ToStdString().substr(mainTextBox->GetValue().ToStdString().size() - 2);
-		if (lastChars == " +" || lastChars == " -" || lastChars == " *" || lastChars == " /" || lastChars == " %" || 
-			lastChars == "+ " || lastChars == "- " || lastChars == "* " || lastChars == "/ " || lastChars == "% ")
-		{
-			mainTextBox->AppendText(" ~");
-			wasNegationPressed = true;
-			wasOperaterPressed = false;
-			return;
-		}
-		if (lastChars == "1 " || lastChars == "2 " || lastChars == "3 " || lastChars == "4 " || lastChars == "5 " ||
-			lastChars == "6 " || lastChars == "7 " || lastChars == "8 " || lastChars == "9 " || lastChars == "0 " || lastChars == "~ ")
-		{
-			wxString removeEmptySpace = mainTextBox->GetValue().ToStdString();
-			removeEmptySpace.RemoveLast();
-			mainTextBox->SetLabel(removeEmptySpace);
-
-			CalculatorProcessor::GetInstance()->CreateTokens(parseString, tokens);
-
-			wxString alterNegative;
-
-			for (size_t i = 0; i < tokens.size() - 1; ++i)
-				alterNegative += tokens[i] + " ";
-
-			tokens[tokens.size() - 1].erase(0, 1);
-			alterNegative += tokens[tokens.size() - 1];
-
-			mainTextBox->SetLabelText(alterNegative);
-			return;
-		}
+		mainTextBox->AppendText("~");
+		wasNegationPressed = true;
+		wasOperaterPressed = wasEqualsPressed = false;
+		return;
 	}
-	
-	if (mainTextBox->GetValue().IsEmpty() && !wasEqualsPressed)
+	else if (!wasNegationPressed && wasEqualsPressed)
 	{
 		mainTextBox->AppendText('~');
 		wasNegationPressed = true;
-		wasOperaterPressed = removedSpace = false;
+		wasOperaterPressed = wasEqualsPressed = false;
 		return;
 	}
-	else if (wasEqualsPressed)
+
+	std::string* lastToken = &tokens[tokens.size() - 1];
+	std::reverse(lastToken->begin(), lastToken->end());
+
+	if (lastToken->size() > 0)
 	{
-		wxString alterNegative = "";
-
-		CalculatorProcessor::GetInstance()->CreateTokens(parseString, tokens);
-
-		if (tokens.size() < 1)
-			tokens.push_back(mainTextBox->GetValue().ToStdString());
-		
-		if (tokens[0][0] == '~')
-			tokens[0].erase(0, 1);
-		else
-		{
-			for (size_t i = 0; i < tokens.size() - 1; ++i)
-					alterNegative += tokens[i] + " ";
-
-			//if (tokens[0][0] == '~')
-				tokens[tokens.size() - 1].erase(0, 1);
-			alterNegative += tokens[tokens.size() - 1];
-
-			mainTextBox->SetLabelText(alterNegative);
-		}
-
-		wasEqualsPressed = wasOperaterPressed = false;
+		if (lastToken->back() == '~')
+			lastToken->pop_back();
+		else if (lastToken->back() != '~')
+			lastToken->push_back('~');
 	}
-	else if (CountCharInLastToken('~') == 1)
-	{
-		wxString alterNegative;
+	else if (mainTextBox->GetValue().IsEmpty())
+		lastToken->push_back('~');
 
-		for (size_t i = 0; i < tokens.size() - 1; ++i)
-			alterNegative += tokens[i] + " ";
+	std::reverse(lastToken->begin(), lastToken->end());
 
-		tokens[tokens.size() - 1].erase(0, 1);
-		alterNegative += tokens[tokens.size() - 1];
-
-		mainTextBox->SetLabelText(alterNegative);
-	}
-	else if (CountCharInLastToken('~') == 0 && !wasOperaterPressed)
-	{
-		wxString introduceNegative;
-
-		if (tokens.size() == 0)
-			introduceNegative = "~" + mainTextBox->GetValue().ToStdString();
-		else
-		{
-			tokens[tokens.size() - 1].insert(0, 1, '~');
-			for (size_t i = 0; i < tokens.size() - 1; ++i)
-				introduceNegative += tokens[i] + " ";
-			introduceNegative += tokens[tokens.size() - 1];
-		}
-		mainTextBox->SetLabel(introduceNegative);
-	}
-	else if (CheckOperator(), wasOperaterPressed)
-	{
-		wxString fixNegative;
-		tokens[tokens.size() - 1].insert(0, 1, '~');
-		for (size_t i = 0; i < tokens.size() - 1; ++i)
-			fixNegative += tokens[i] + " ";
-		fixNegative += tokens[tokens.size() - 1];
-		mainTextBox->SetLabel(fixNegative);
-	}
-
-	wasEqualsPressed = false;
-}
-
-void Window::FixSymbols(std::string& _stringToRead)
-{
-	std::string tempReadString = " ";
-	bool startCharOperatorOrSpace = true;
-	bool endCharOperatorOrSpace = true;
-	int countOfOperators = 0;
-
-	// Loop through and make sure to remove all ' ' or operators at the beginning
-	// if there are no numbers to go off of.
-	while (startCharOperatorOrSpace)
-	{
-		if (_stringToRead[0] == '+' || _stringToRead[0] == '-' ||
-			_stringToRead[0] == '*' || _stringToRead[0] == '/' ||
-			_stringToRead[0] == '%' || _stringToRead[0] == ' ')
-		{
-			tempReadString = _stringToRead;
-			tempReadString.erase(0, 1);
-			_stringToRead = tempReadString;
-		}
-		else startCharOperatorOrSpace = false;
-	}
-
-	for (size_t i = 0; i < _stringToRead.size(); ++i)
-	{
-		if (_stringToRead[i] == '+' || _stringToRead[i] == '-' ||
-			_stringToRead[i] == '*' || _stringToRead[i] == '/' ||
-			_stringToRead[i] == '%')
-		{
-			if (_stringToRead[i + 1] != ' ')
-			{
-				_stringToRead.insert(i + 1, i + 1, ' ');
-				--i;
-				continue;
-			}
-			else if (_stringToRead[i - 1] != ' ')
-			{
-				_stringToRead.insert(--i, ++i, ' ');
-				--i;
-			}
-		}
-	}
-
-	// Go back through and make sure there are none at the end aswell.
-	while (endCharOperatorOrSpace)
-	{
-		if (_stringToRead[_stringToRead.size() - 1] == '+' || _stringToRead[_stringToRead.size() - 1] == '-' ||
-			_stringToRead[_stringToRead.size() - 1] == '*' || _stringToRead[_stringToRead.size() - 1] == '/' ||
-			_stringToRead[_stringToRead.size() - 1] == '%' || _stringToRead[_stringToRead.size() - 1] == ' ')
-			_stringToRead.pop_back(); // takes the last element off if it is an operator or a space
-		else endCharOperatorOrSpace = false;
-	}
-
-	CalculatorProcessor::GetInstance()->CreateTokens(_stringToRead, tokens);
-	_stringToRead = "";
+	std::string readBackIn = "";
 	for (size_t i = 0; i < tokens.size(); ++i)
-		_stringToRead += tokens[i] + ' ';
-	if (_stringToRead[_stringToRead.size() - 1] == ' ')
-		_stringToRead.pop_back();
+		readBackIn += tokens[i] + ' ';
+		
+	if (readBackIn.back() == ' ')
+		readBackIn.pop_back();
 
+	mainTextBox->SetLabelText(readBackIn);
+
+	wasNegationPressed = true;
+	wasOperaterPressed = wasEqualsPressed = false;
 }
