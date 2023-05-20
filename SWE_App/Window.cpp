@@ -138,11 +138,11 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 		CalculatorProcessor* instance = CalculatorProcessor::GetInstance();
 		instance->GetInstance()->FixOperators(needsFixing, tokens);
-		if (needsFixing == "")
+		if (needsFixing == "" || DivModByZero())
 		{
 			mainTextBox->SetLabel("Syntax Error");
 			return;
-		}
+		}			
 
 		instance->GetInstance()->CreateAndCalcTokens(needsFixing, calculatorDisplayAns);
 
@@ -386,7 +386,7 @@ void Window::NegativeCase()
 	std::string readBackIn = "";
 	for (size_t i = 0; i < tokens.size(); ++i)
 		readBackIn += tokens[i] + ' ';
-		
+
 	if (readBackIn.back() == ' ')
 		readBackIn.pop_back();
 
@@ -394,4 +394,16 @@ void Window::NegativeCase()
 
 	wasNegationPressed = true;
 	wasOperaterPressed = wasEqualsPressed = false;
+}
+
+bool Window::DivModByZero()
+{
+	CreateTokens();
+
+	for (size_t i = 0; i < tokens.size(); ++i)
+		if (tokens[i] == "%" || tokens[i] == "/")
+			if (tokens[i + 1] == "0" || tokens[i + 1] == "~" || tokens[i + 1] == "." || tokens[i + 1] == "~.")
+				return true;
+	
+	return false;
 }
