@@ -123,6 +123,7 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 	case IDTable::btnNum1: case IDTable::btnNum2: case IDTable::btnNum3:
 	case IDTable::btnNum4: case IDTable::btnNum5: case IDTable::btnNum6:
 	case IDTable::btnNum7: case IDTable::btnNum8: case IDTable::btnNum9: case IDTable::btnNum0:
+		wasEqualsPressed = false;
 		SetButtonNumTo(evtButton->GetLabel());
 		break;
 
@@ -138,12 +139,7 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		instance->GetInstance()->FixOperators(needsFixing, tokens);
 
 		mainTextBox->SetValue(needsFixing);
-		if (CreateTokens(), tokens.size() == 1)
-		{
-			mainTextBox->SetLabel(tokens[0]);
-			wasOperaterPressed = wasEqualsPressed = true;
-			return;
-		}
+		CreateTokens();
 
 		if (DivModByZero())
 		{
@@ -166,6 +162,7 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 #pragma region Operations
 	case IDTable::btnAdd: case IDTable::btnSubtract: case IDTable::btnMultiply: case IDTable::btnDivide: case IDTable::btnMod:
+		wasEqualsPressed = false;
 		ChangeSymbolInParsedString(evtButton->GetLabel());
 		break;
 #pragma endregion
@@ -378,12 +375,18 @@ void Window::NegativeCase()
 
 	if (wasOperaterPressed)
 	{
-		mainTextBox->AppendText("~");
-		wasNegationPressed = true;
-		wasOperaterPressed = wasEqualsPressed = false;
-		return;
+		if (tokens[tokens.size() - 1] == '*' || tokens[tokens.size() - 1] == '/' ||
+			tokens[tokens.size() - 1] == '-' || tokens[tokens.size() - 1] == '+' ||
+			tokens[tokens.size() - 1] == '%')
+		{
+			mainTextBox->AppendText('~');
+			wasNegationPressed = true;
+			wasOperaterPressed = wasEqualsPressed = false;
+			return;
+		}
 	}
-	else if (!wasNegationPressed && wasEqualsPressed)
+
+	if (!wasNegationPressed && wasEqualsPressed)
 	{
 		mainTextBox->AppendText('~');
 		wasNegationPressed = true;
@@ -433,22 +436,9 @@ bool Window::DivModByZero()
 
 void Window::ChangeTrigSymbol(wxString _string)
 {
-	if (_string == 's')
-	{
-		if (CountCharInLastToken('c') == 1 || CountCharInLastToken('t') == 1)
-			return;
-	}
-	else if (_string == 'c')
-	{
-		if (CountCharInLastToken('s') == 1 || CountCharInLastToken('t') == 1)
-			return;
-	}
-	else if (_string == 't')
-	{
-		if (CountCharInLastToken('s') == 1 || CountCharInLastToken('c') == 1)
-			return;
-	}
-	
+	if (wasEqualsPressed)
+		return;
+
 	if (wasTrigPressed)
 	{
 		if (mainTextBox->GetValue().ToStdString().size() == 0)
@@ -459,9 +449,6 @@ void Window::ChangeTrigSymbol(wxString _string)
 
 		std::string replaceSymString = mainTextBox->GetValue().ToStdString();
 
-		if (replaceSymString.back() == ' ')
-			replaceSymString.pop_back();
-
 		if (replaceSymString.back() == 's' ||
 			replaceSymString.back() == 'c' ||
 			replaceSymString.back() == 't')
@@ -470,8 +457,11 @@ void Window::ChangeTrigSymbol(wxString _string)
 		mainTextBox->SetLabel(replaceSymString);
 		mainTextBox->AppendText(_string);
 	}
-	else if (!wasTrigPressed)
+	else if (!wasTrigPressed && wasOperaterPressed)
 	{
+		if (CountCharInLastToken('s') == 1 || CountCharInLastToken('c') == 1 || CountCharInLastToken('t') == 1)
+			return;
+		
 		mainTextBox->AppendText(_string);
 		wasTrigPressed = true;
 	}

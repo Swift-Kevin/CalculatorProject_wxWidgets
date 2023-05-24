@@ -85,6 +85,26 @@ void CalculatorProcessor::CreateAndCalcTokens(std::string& _toRead, std::string&
 	std::vector<std::string> _mockTokens;
 	CalculatorProcessor::CreateTokens(_toRead, _mockTokens);
 
+	for (size_t i = 0; i < _mockTokens.size(); ++i)
+	{
+		if (_mockTokens[i] == "s" || _mockTokens[i] == "-s" ||
+			_mockTokens[i] == "c" || _mockTokens[i] == "-c" ||
+			_mockTokens[i] == "t" || _mockTokens[i] == "-t")
+		{
+			_answer = "Syntax Error";
+			return;
+		}
+	}
+
+	if (_mockTokens.size() == 1)
+	{
+		IsFunction(_mockTokens[0]);
+		_answer = _mockTokens[0];
+		if (stof(_answer) < 0)
+			_answer[0] = '~';
+		return;
+	}
+
 	std::string passString;
 	std::stringstream lineStream(_toRead);
 	std::stack<std::string> values;
@@ -226,6 +246,12 @@ void CalculatorProcessor::SolveTrig(std::string& _stringToRead)
 	_stringToRead[0] == '-' ? index = 1 : index = 0;
 
 	tempSubstring = _stringToRead.substr(index + 1, _stringToRead.size());
+
+	if (tempSubstring == "")
+	{
+		_stringToRead = "0";
+		return;
+	}
 
 	switch (_stringToRead[index])
 	{
