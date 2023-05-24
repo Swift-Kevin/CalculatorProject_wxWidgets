@@ -314,11 +314,12 @@ namespace CalculatorAppTests
 			wxSize normalButtonSize = wxSize(windowObj.GetSize().x / 5, windowObj.GetSize().y / 10);
 			actualVecButtons = { _Actual_btnNum1_TESTING, _Actual_btnNum2_TESTING, _Actual_btnNum3_TESTING, _Actual_btnNum4_TESTING, _Actual_btnNum5_TESTING, _Actual_btnNum6_TESTING, _Actual_btnNum7_TESTING, _Actual_btnNum8_TESTING, _Actual_btnNum9_TESTING, _Actual_btnNum0_TESTING, _Actual_btnEquals_TESTING, _Actual_btnAdd_TESTING, _Actual_btnSubtract_TESTING, _Actual_btnMultiply_TESTING, _Actual_btnDivide_TESTING, _Actual_btnMod_TESTING, _Actual_btnSIN_TESTING, _Actual_btnCOS_TESTING, _Actual_btnTAN_TESTING, _Actual_btnDecimal_TESTING, _Actual_btnNegative_TESTING, _Actual_btnBackspace_TESTING, _Actual_btnClear_TESTING };
 			buttonFactoryObj.CreateButtons(&windowObj, actualVecButtons, normalButtonSize);
-
+			
 			wxButton* ptrButton = actualVecButtons[rand() % actualVecButtons.size() + 1];
 
 			wxWindow* ptrWindow = ptrButton->GetParent();
 
+			// Check to make sure that the parent window pointer is the proper window to be creating it off of
 			Assert::IsTrue(ptrWindow == &windowObj);
 		}
 	};

@@ -468,11 +468,11 @@ void Window::ChangeTrigSymbol(wxString _string)
 			replaceSymString.pop_back();
 
 		mainTextBox->SetLabel(replaceSymString);
-		mainTextBox->AppendText(" " + _string);
+		mainTextBox->AppendText(_string);
 	}
 	else if (!wasTrigPressed)
 	{
-		mainTextBox->AppendText(" " + _string);
+		mainTextBox->AppendText(_string);
 		wasTrigPressed = true;
 	}
 	wasNumberPressed = wasDecimalPressed = wasOperaterPressed = false;
