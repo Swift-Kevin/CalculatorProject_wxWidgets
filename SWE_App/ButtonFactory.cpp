@@ -1,4 +1,6 @@
 #include "ButtonFactory.h"
+#include "Window.h"
+
 enum IDTable
 {
 	btnNum1 = 10001,

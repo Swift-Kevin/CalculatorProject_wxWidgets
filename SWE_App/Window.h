@@ -3,16 +3,10 @@
 #include "ButtonFactory.h"
 #include "CalculatorProcessor.h"
 #include <queue>
-#include <sstream>
-#include <unordered_map>
-
-class CalculatorProcessor;
 
 class Window : public wxFrame
 {
 private:
-	//CalculatorProcessor* CalculatorProcessor::instance = nullptr;
-
 	ButtonFactory buttonFactoryObj;
 
 	wxBoxSizer* mainBox = nullptr;
@@ -53,19 +47,21 @@ private:
 	wxTextCtrl* mainTextBox = nullptr;
 	std::vector<wxButton*> vecButtons;
 
-	std::vector<bool> vecButtonEnabling;
 	std::string parseString;
 	std::vector<std::string> tokens;
 	std::queue<float> operandsQueue;
 	std::queue<char> operatorsQueue;
 	std::queue<std::string> functionsQueue;
 
-	bool wasOperaterPressed, wasEqualsPressed, wasNumberPressed, wasNegationPressed, wasDecimalPressed, removedSpace;
+	bool wasOperaterPressed, wasEqualsPressed, wasNumberPressed, wasNegationPressed, wasDecimalPressed, wasTrigPressed, removedSpace;
 	int charIndex = 0;
 	wxString displayAns = " ", parsedAdjustedString = " ";
 	std::string calculatorDisplayAns= " ";
 	float num1, num2, answer = 0;
 	char operational = ' ';
+
+	// Default all values true, overidden during runtime
+	std::vector<bool> vecButtonEnabling = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };
 
 public:
 	Window();
@@ -75,6 +71,7 @@ public:
 	void CreateTokens();
 	void CheckOperator();
 	void NegativeCase();
+	void ChangeTrigSymbol(wxString _string);
 	bool DivModByZero();
 	int CountCharInLastToken(char _charToCheckFor);
 

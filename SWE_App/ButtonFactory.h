@@ -1,10 +1,9 @@
 #pragma once
 #include "wx/wx.h"
 
+class Window;
 class ButtonFactory
 {
-private:
-
 public:
 	static void CreateButtons(wxWindow* _parentPTR, std::vector<wxButton*>& _vecButtons, wxSize& _buttonSize);
 	static void SetButtonsFont(wxFont _fontReference, std::vector<wxButton*> _vecButtons);

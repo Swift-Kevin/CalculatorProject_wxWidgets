@@ -60,17 +60,28 @@ void CalculatorProcessor::FixOperators(std::string& _stringToRead, std::vector<s
 		else if (_stringToRead[_stringToRead.size() - 1] == '+' || _stringToRead[_stringToRead.size() - 1] == '-' ||
 			_stringToRead[_stringToRead.size() - 1] == '*' || _stringToRead[_stringToRead.size() - 1] == '/' ||
 			_stringToRead[_stringToRead.size() - 1] == '%' || _stringToRead[_stringToRead.size() - 1] == ' ' ||
-			_stringToRead[_stringToRead.size() - 1] == '~' || _stringToRead[_stringToRead.size() - 1] == '.' )
+			_stringToRead[_stringToRead.size() - 1] == '~' || _stringToRead[_stringToRead.size() - 1] == 'c' ||
+			_stringToRead[_stringToRead.size() - 1] == 's' || _stringToRead[_stringToRead.size() - 1] == 't')
 			_stringToRead.pop_back(); // takes the last element off if it is an operator or a space
 		else endCharOperatorOrSpace = false;
 	}
 
 	CreateTokens(_stringToRead, _tokens);
-	
+
+	for (size_t i = 0; i < _tokens.size(); ++i)
+		if (_tokens[i] == "%" || _tokens[i] == "/")
+			if (_tokens[i + 1] == "0" || _tokens[i + 1] == "~" || _tokens[i + 1] == "." || _tokens[i + 1] == "~.")
+				_stringToRead = "Syntax Error";	
 }
 
 void CalculatorProcessor::CreateAndCalcTokens(std::string& _toRead, std::string& _answer)
 {
+	if (_toRead == "Syntax Error")
+	{
+		_answer = "Syntax Error";
+		return;
+	}
+
 	std::vector<std::string> _mockTokens;
 	CalculatorProcessor::CreateTokens(_toRead, _mockTokens);
 
@@ -137,6 +148,11 @@ void CalculatorProcessor::CreateAndCalcTokens(std::string& _toRead, std::string&
 
 	if (stof(_answer) < 0)
 		_answer[0] = '~';
+	
+	if (_answer.find('.'))
+		for (size_t i = _answer.size(); i > 0; --i)
+			if (_answer[i] == '0')
+				_answer.pop_back();
 }
 
 bool CalculatorProcessor::IsNumber(std::string _stringToRead)

@@ -28,7 +28,6 @@ enum IDTable
 	mainTextBox
 };
 
-
 #pragma region Event Table
 wxBEGIN_EVENT_TABLE(Window, wxFrame)
 EVT_BUTTON(IDTable::btnNum1, Window::OnButtonClick)
@@ -135,14 +134,28 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		displayAns = mainTextBox->GetValue().ToStdString();
 
 		std::string needsFixing = mainTextBox->GetValue().ToStdString();
-
 		CalculatorProcessor* instance = CalculatorProcessor::GetInstance();
 		instance->GetInstance()->FixOperators(needsFixing, tokens);
-		if (needsFixing == "" || DivModByZero())
+
+		mainTextBox->SetValue(needsFixing);
+		if (CreateTokens(), tokens.size() == 1)
+		{
+			mainTextBox->SetLabel(tokens[0]);
+			wasOperaterPressed = wasEqualsPressed = true;
+			return;
+		}
+
+		if (DivModByZero())
 		{
 			mainTextBox->SetLabel("Syntax Error");
 			return;
-		}			
+		}
+
+		if (needsFixing == "")
+		{
+			mainTextBox->SetLabel("Syntax Error");
+			return;
+		}
 
 		instance->GetInstance()->CreateAndCalcTokens(needsFixing, calculatorDisplayAns);
 
@@ -159,15 +172,15 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 #pragma region Trig Buttons
 	case IDTable::btnSIN:
-		mainTextBox->AppendText("s");
+		ChangeTrigSymbol('s');
 		break;
 
 	case IDTable::btnCOS:
-		mainTextBox->AppendText("c");
+		ChangeTrigSymbol('c');
 		break;
 
 	case IDTable::btnTAN:
-		mainTextBox->AppendText("t");
+		ChangeTrigSymbol('t');
 		break;
 #pragma endregion
 
@@ -212,6 +225,11 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 
 			if (lastTwoChars == "0." || lastTwoChars == ". ")
 				wasDecimalPressed = true;
+
+			if (lastTwoChars == "s " || lastTwoChars == " s" ||
+				lastTwoChars == "c " || lastTwoChars == " c" ||
+				lastTwoChars == "t " || lastTwoChars == " t")
+				wasTrigPressed = true;
 		}
 
 		if (mainTextBox->GetValue().ToStdString() == "")
@@ -226,7 +244,7 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		mainTextBox->SetLabelText("");
 		tokens.clear();
 		wasOperaterPressed = true;
-		wasNegationPressed = wasNumberPressed = false;
+		wasNegationPressed = wasNumberPressed = wasTrigPressed = false;
 
 		break;
 #pragma endregion
@@ -297,7 +315,7 @@ void Window::CreateTokens()
 void Window::SetButtonNumTo(wxString _string)
 {
 	mainTextBox->AppendText(_string);
-	wasOperaterPressed = wasNegationPressed = wasDecimalPressed = false;
+	wasOperaterPressed = wasNegationPressed = wasDecimalPressed = wasTrigPressed = false;
 	wasNumberPressed = true;
 }
 
@@ -342,6 +360,11 @@ void Window::CheckOperator()
 
 		if (lastTwoChars == "0." || lastTwoChars == ". ")
 			wasDecimalPressed = true;
+
+		if (lastTwoChars == "s " || lastTwoChars == " s" ||
+			lastTwoChars == "c " || lastTwoChars == " c" ||
+			lastTwoChars == "t " || lastTwoChars == " t")
+			wasTrigPressed = true;
 	}
 }
 
@@ -404,6 +427,53 @@ bool Window::DivModByZero()
 		if (tokens[i] == "%" || tokens[i] == "/")
 			if (tokens[i + 1] == "0" || tokens[i + 1] == "~" || tokens[i + 1] == "." || tokens[i + 1] == "~.")
 				return true;
-	
+
 	return false;
+}
+
+void Window::ChangeTrigSymbol(wxString _string)
+{
+	if (_string == 's')
+	{
+		if (CountCharInLastToken('c') == 1 || CountCharInLastToken('t') == 1)
+			return;
+	}
+	else if (_string == 'c')
+	{
+		if (CountCharInLastToken('s') == 1 || CountCharInLastToken('t') == 1)
+			return;
+	}
+	else if (_string == 't')
+	{
+		if (CountCharInLastToken('s') == 1 || CountCharInLastToken('c') == 1)
+			return;
+	}
+	
+	if (wasTrigPressed)
+	{
+		if (mainTextBox->GetValue().ToStdString().size() == 0)
+		{
+			mainTextBox->AppendText(_string);
+			return;
+		}
+
+		std::string replaceSymString = mainTextBox->GetValue().ToStdString();
+
+		if (replaceSymString.back() == ' ')
+			replaceSymString.pop_back();
+
+		if (replaceSymString.back() == 's' ||
+			replaceSymString.back() == 'c' ||
+			replaceSymString.back() == 't')
+			replaceSymString.pop_back();
+
+		mainTextBox->SetLabel(replaceSymString);
+		mainTextBox->AppendText(" " + _string);
+	}
+	else if (!wasTrigPressed)
+	{
+		mainTextBox->AppendText(" " + _string);
+		wasTrigPressed = true;
+	}
+	wasNumberPressed = wasDecimalPressed = wasOperaterPressed = false;
 }
