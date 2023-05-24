@@ -162,11 +162,13 @@
   <ItemGroup>
     <ClCompile Include="..\SWE_App\ButtonFactory.cpp" />
     <ClCompile Include="..\SWE_App\CalculatorProcessor.cpp" />
+    <ClCompile Include="..\SWE_App\Window.cpp" />
     <ClCompile Include="CalculatorAppTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\SWE_App\ButtonFactory.h" />
     <ClInclude Include="..\SWE_App\CalculatorProcessor.h" />
+    <ClInclude Include="..\SWE_App\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

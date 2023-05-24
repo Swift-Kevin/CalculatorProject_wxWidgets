@@ -24,12 +24,18 @@
     <ClCompile Include="..\SWE_App\CalculatorProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\SWE_App\Window.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\SWE_App\ButtonFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\SWE_App\CalculatorProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SWE_App\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -157,3 +157,33 @@ void ButtonFactory::SetButtonsEnabled(std::vector<wxButton*> _buttons, std::vect
 	for (size_t i = 0; i < _buttons.size(); i++)
 		_buttons[i]->Enable(_status[i]);
 }
+
+wxFont ButtonFactory::CreateFont()
+{
+	return wxFont(25, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+}
+
+int ButtonFactory::GetID(int _position)
+{
+	return IDTable(_position) + 10000;
+}
+
+std::vector<bool> ButtonFactory::GetEnabeledVector(Window* _windowObj)
+{
+	return _windowObj->vecButtonEnabling;
+}
+
+int ButtonFactory::GetAmountOfButtons(Window* _windowObj)
+{
+	return _windowObj->GetAmountOfButtons();
+}
+
+int ButtonFactory::GetSpacerSize(Window* _windowObj)
+{
+	return _windowObj->GetSize().x / 25;
+}
+
+int ButtonFactory::GetBoxSizersOrient(Window* _windowObj, int _position)
+{
+	return _windowObj->WindowGetBoxSizers(_position)->GetOrientation();
+}

@@ -477,3 +477,13 @@ void Window::ChangeTrigSymbol(wxString _string)
 	}
 	wasNumberPressed = wasDecimalPressed = wasOperaterPressed = false;
 }
+
+int Window::GetAmountOfButtons()
+{
+	return vecButtons.size();
+}
+
+wxBoxSizer* Window::WindowGetBoxSizers(int _position)
+{
+	return vecBoxSizers[_position];
+}

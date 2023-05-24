@@ -60,9 +60,7 @@ private:
 	float num1, num2, answer = 0;
 	char operational = ' ';
 
-	// Default all values true, overidden during runtime
-	std::vector<bool> vecButtonEnabling = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };
-
+	
 public:
 	Window();
 	void OnButtonClick(wxCommandEvent& _event);
@@ -74,6 +72,13 @@ public:
 	void ChangeTrigSymbol(wxString _string);
 	bool DivModByZero();
 	int CountCharInLastToken(char _charToCheckFor);
+
+	// Default all values true, overidden during runtime
+	std::vector<bool> vecButtonEnabling = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };
+
+	// Testing assistance methods
+	int GetAmountOfButtons();
+	wxBoxSizer* WindowGetBoxSizers(int _position);
 
 	wxDECLARE_EVENT_TABLE();
 };
