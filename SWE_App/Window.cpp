@@ -1,68 +1,49 @@
 #include "Window.h"
 
-enum IDTable
-{
-	btnNum1 = 10001,
-	btnNum2,
-	btnNum3,
-	btnNum4,
-	btnNum5,
-	btnNum6,
-	btnNum7,
-	btnNum8,
-	btnNum9,
-	btnNum0,
-	btnEquals,
-	btnAdd,
-	btnSubtract,
-	btnMultiply,
-	btnDivide,
-	btnMod,
-	btnSIN,
-	btnCOS,
-	btnTAN,
-	btnDecimal,
-	btnNegative,
-	btnBackspace,
-	btnClear,
-	mainTextBox
-};
-
 #pragma region Event Table
 wxBEGIN_EVENT_TABLE(Window, wxFrame)
-EVT_BUTTON(IDTable::btnNum1, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNum2, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNum3, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNum4, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNum5, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNum6, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNum7, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNum8, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNum9, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNum0, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnEquals, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnAdd, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnSubtract, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnMultiply, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnDivide, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnMod, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnSIN, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnCOS, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnTAN, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnDecimal, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnNegative, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnBackspace, Window::OnButtonClick)
-EVT_BUTTON(IDTable::btnClear, Window::OnButtonClick)
+// Button IDs are in order, so one range covers them all
+EVT_COMMAND_RANGE(IDTable::btnNum1, IDTable::btnClear, wxEVT_BUTTON, Window::OnButtonClick)
+EVT_CHAR_HOOK(Window::OnKeyDown)
+EVT_SIZE(Window::OnResize)
 wxEND_EVENT_TABLE()
 #pragma endregion
 
-Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wxSize(500, 900))
+namespace
 {
-	// A wxSize variable for all buttons to use, so it can be modified in one location rather thaan multiple.
-	wxSize normalButtonSize = wxSize(GetSize().x / 5, GetSize().y / 10);
+	// Dark theme colors
+	const wxColour windowBG(28, 28, 30);
+	const wxColour displayTextColor(245, 245, 247);
+	const wxColour historyTextColor(142, 142, 147);
+}
 
-#pragma region Setting wxBoxSizers, wxButtons, and wxFont to defaults
-	// Set all the wxBoxSizer elements to be their appropriate orientation
+Window::Window() : wxFrame(nullptr, wxID_ANY, "Calculator", wxPoint(50, 50), wxSize(500, 900))
+{
+	SetBackgroundColour(windowBG);
+
+	// One button size for everything so it only changes in one spot
+	wxSize normalButtonSize = wxSize(GetSize().x / 5, GetSize().y / 10);
+	int spacerSize = GetSize().x / 25;
+
+	// All sized off the starting window, so do it before SetSizerAndFit
+	SetUpSizers();
+	SetUpFonts();
+	SetUpDisplay();
+	SetUpButtons(normalButtonSize, spacerSize);
+	SetUpKeyboardInput();
+
+	// Hook up the sizers
+	SetSizerAndFit(mainBox);
+
+	SetUpResizing(normalButtonSize, spacerSize);
+
+	// Start with wasOperaterPressed true, some buttons need it false before they'll work
+	wasOperaterPressed = true;
+}
+
+void Window::SetUpSizers()
+{
+	// Make the sizers
 	mainBox = new wxBoxSizer(wxVERTICAL);
 	textBoxRow = new wxBoxSizer(wxHORIZONTAL);
 	row1 = new wxBoxSizer(wxHORIZONTAL);
@@ -71,129 +52,121 @@ Window::Window() : wxFrame(nullptr, wxID_ANY, "Main Window", wxPoint(50, 50), wx
 	row4 = new wxBoxSizer(wxHORIZONTAL);
 	row5 = new wxBoxSizer(wxHORIZONTAL);
 	row6 = new wxBoxSizer(wxHORIZONTAL);
-	// Now that they are all initialized, insert them into the vector of box sizer ptrs 
-	vecBoxSizers = { mainBox, textBoxRow, row1, row2, row3, row4, row5, row6 };
+	sizerButtonsAll = { mainBox, textBoxRow, row1, row2, row3, row4, row5, row6 };
+}
 
-	// Create a generic Font variable so we can make the font fancy in the calculator
-	genericFont = wxFont(GetSize().x / 20, wxFONTFAMILY_DECORATIVE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-	mainTextBox = new wxTextCtrl(this, IDTable::mainTextBox, "", wxDefaultPosition, wxSize(GetSize().x - (GetSize().x / 12), GetSize().y / 7));
-	mainTextBox->SetFont(genericFont);
+void Window::SetUpFonts()
+{
+	// Starting font sizes, OnResize scales these
+	buttonFontSize = GetSize().x / 25;
+	historyFontSize = GetSize().x / 35;
+	displayFontSize = GetSize().x / 14;
 
-	// Use the button factory object to create all the buttons, they all follow the same layout so
-	// we can use the same CreateButton method to initialize them all
-	// First we need to put all the buttons into a vector so we can call them in the factory
-	vecButtons = { btnNum1, btnNum2, btnNum3, btnNum4, btnNum5, btnNum6, btnNum7, btnNum8, btnNum9, btnNum0, btnEquals, btnAdd, btnSubtract, btnMultiply, btnDivide, btnMod, btnSIN, btnCOS, btnTAN, btnDecimal, btnNegative, btnBackspace, btnClear };
-	buttonFactoryObj.CreateButtons(this, vecButtons, normalButtonSize);
+	// Button font
+	genericFont = wxFont(wxFontInfo(buttonFontSize).FaceName("Segoe UI"));
+}
 
-#pragma endregion
+void Window::SetUpDisplay()
+{
+	// Grey line above the display with the last equation
+	historyText = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT | wxST_NO_AUTORESIZE | wxST_ELLIPSIZE_START);
+	historyText->SetFont(wxFont(wxFontInfo(historyFontSize).FaceName("Segoe UI")));
+	historyText->SetForegroundColour(historyTextColor);
+	historyText->SetBackgroundColour(windowBG);
+	historyText->SetMinSize(wxSize(-1, historyText->GetCharHeight()));
 
-#pragma region Button Enabling / Disabling / Spacing / Fonts
-	// Use the button factory's SetButtonsFont method to put all buttons to the fonts type
+	// Read only, typing goes through OnCharacterPressed instead
+	mainTextBox = new wxTextCtrl(this, IDTable::mainTextBox, "", wxDefaultPosition, wxSize(GetSize().x - (GetSize().x / 12), -1), wxTE_RIGHT | wxTE_READONLY | wxBORDER_NONE);
+	mainTextBox->SetFont(wxFont(wxFontInfo(displayFontSize).FaceName("Segoe UI Light")));
+	mainTextBox->SetBackgroundColour(windowBG);
+	mainTextBox->SetForegroundColour(displayTextColor);
+}
+
+void Window::SetUpButtons(wxSize _normalButtonSize, int _spacerSize)
+{
+	// Factory makes all the buttons
+	buttonFactoryObj.CreateButtons(this, vecButtons, _normalButtonSize);
+
+	// Put the font on every button
 	buttonFactoryObj.SetButtonsFont(genericFont, vecButtons);
 
-	// Set Spacers and Box Size positions for Buttons in Calculator
-	int spacerSize = GetSize().x / 25;
-	buttonFactoryObj.SetButtonsSpacers(spacerSize, vecBoxSizers, *mainTextBox, vecButtons);
+	// Lay everything out
+	buttonFactoryObj.SetButtonsSpacers(_spacerSize, sizerButtonsAll, *mainTextBox, vecButtons, historyText);
+}
 
-	//				      '1'   '2'   '3'   '4'   '5'   '6'   '7'   '8'   '9'   '0'   '='   '+'   '-'   '*'   '/'   '%'   'SIN'  'COS'  'TAN'  '.'   '~'   '<-'  'C'      
-	vecButtonEnabling = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };
-	// Button Enabled/Disabled
-	buttonFactoryObj.SetButtonsEnabled(vecButtons, vecButtonEnabling);
+void Window::SetUpKeyboardInput()
+{
+	// Keys go to whatever has focus, so everything sends them to OnCharacterPressed
+	for (wxButton* button : vecButtons)
+	{
+		button->Bind(wxEVT_CHAR, &Window::OnCharacterPressed, this);
+	}
+	mainTextBox->Bind(wxEVT_CHAR, &Window::OnCharacterPressed, this);
+	Bind(wxEVT_CHAR, &Window::OnCharacterPressed, this);
+}
 
-#pragma endregion
+void Window::SetUpResizing(const wxSize& _normalButtonSize, int _spacerSize)
+{
+	// OnResize scales off this
+	startingClientSize = GetClientSize();
 
-	// Sets the box sizers to work properly
-	SetSizerAndFit(mainBox);
-	// Defaults wasOperatorPressed to true so some buttons cannot be clicked due to needing to pass
-	// an if check in which they need wasOperatorPressed = false;
-	wasOperaterPressed = true;
+	// Lower the min sizes so the window can shrink, the 0 button stays two wide
+	wxSize smallestButtonSize = wxSize(_normalButtonSize.x / 2, _normalButtonSize.y / 2);
+	for (wxButton* button : vecButtons)
+	{
+		button->SetMinSize(smallestButtonSize);
+	}
+	ButtonFactory::GetButton(vecButtons, IDTable::btnNum0)->SetMinSize(wxSize(smallestButtonSize.x * 2 + _spacerSize, smallestButtonSize.y));
+	mainTextBox->SetMinSize(wxSize(smallestButtonSize.x, -1));
+
+	// Can't shrink smaller than everything fits
+	SetMinClientSize(mainBox->GetMinSize());
 }
 
 void Window::OnButtonClick(wxCommandEvent& _event)
 {
 	wxButton* evtButton = static_cast<wxButton*>(_event.GetEventObject());
+	// Look the button up in the table
+	const ButtonInfo* buttonInfo = ButtonFactory::GetButtonInfo(evtButton->GetId());
+	if (buttonInfo == nullptr)
+	{
+		return;
+	}
 
-	if (mainTextBox->GetValue().ToStdString() == "Syntax Error")
+	// Any button clears undef and starts fresh
+	if (GetDisplayText() == CalculatorProcessor::ErrorText)
+	{
 		mainTextBox->SetLabelText("");
+		ResetFlags();
+	}
 
 	switch (evtButton->GetId())
 	{
-#pragma region Appending Number pressed into calculator string
-		// All the number cases are doing the exact same thing, so can stack the cases like this to make it more compact
+		// All the numbers do the same thing, so stack the cases
 	case IDTable::btnNum1: case IDTable::btnNum2: case IDTable::btnNum3:
 	case IDTable::btnNum4: case IDTable::btnNum5: case IDTable::btnNum6:
 	case IDTable::btnNum7: case IDTable::btnNum8: case IDTable::btnNum9: case IDTable::btnNum0:
 		wasEqualsPressed = false;
-		SetButtonNumTo(evtButton->GetLabel());
+		SetButtonNumTo(buttonInfo->symbol);
 		break;
-
-#pragma endregion
 
 	case IDTable::btnEquals:
-	{
-		// Ex: "3 + " stops this from running and instead forces the user to input a number
-		displayAns = mainTextBox->GetValue().ToStdString();
-
-		std::string needsFixing = mainTextBox->GetValue().ToStdString();
-		CalculatorProcessor* instance = CalculatorProcessor::GetInstance();
-		instance->GetInstance()->FixOperators(needsFixing, tokens);
-
-		mainTextBox->SetValue(needsFixing);
-		CreateTokens();
-
-		if (DivModByZero())
-		{
-			mainTextBox->SetLabel("Syntax Error");
-			return;
-		}
-
-		if (needsFixing == "")
-		{
-			mainTextBox->SetLabel("Syntax Error");
-			return;
-		}
-
-		instance->GetInstance()->CreateAndCalcTokens(needsFixing, calculatorDisplayAns);
-
-		mainTextBox->SetLabel(calculatorDisplayAns);
-		wasOperaterPressed = wasEqualsPressed = true;
+		EqualsCase();
 		break;
-	}
 
-#pragma region Operations
 	case IDTable::btnAdd: case IDTable::btnSubtract: case IDTable::btnMultiply: case IDTable::btnDivide: case IDTable::btnMod:
+		// Labels have the fancy symbols, so use the plain one from the table
 		wasEqualsPressed = false;
-		ChangeSymbolInParsedString(evtButton->GetLabel());
+		ChangeSymbolInParsedString(buttonInfo->symbol);
 		break;
-#pragma endregion
-
-#pragma region Trig Buttons
-	case IDTable::btnSIN:
-		ChangeTrigSymbol('s');
+	case IDTable::btnSIN: case IDTable::btnCOS: case IDTable::btnTAN:
+		ChangeTrigSymbol(buttonInfo->symbol);
 		break;
 
-	case IDTable::btnCOS:
-		ChangeTrigSymbol('c');
-		break;
-
-	case IDTable::btnTAN:
-		ChangeTrigSymbol('t');
-		break;
-#pragma endregion
-
-#pragma region Decimal | Negative | BackSpace | Clear Buttons
 	case IDTable::btnDecimal:
-	{
-		if (mainTextBox->GetValue().ToStdString() != "")
-			if (CountCharInLastToken('.') == 1) return;
-
-		if (mainTextBox->GetValue().IsEmpty() || wasOperaterPressed || wasNumberPressed || wasNegationPressed)
-			mainTextBox->AppendText('.');
-
-		wasOperaterPressed = wasNumberPressed = false;
-		wasDecimalPressed = true;
+		DecimalCase();
 		break;
-	}
+
 	case IDTable::btnNegative:
 		NegativeCase();
 		CheckOperator();
@@ -202,83 +175,241 @@ void Window::OnButtonClick(wxCommandEvent& _event)
 		break;
 
 	case IDTable::btnBackspace:
-	{
-		std::string backSpaceText = mainTextBox->GetValue().ToStdString();
-		if (backSpaceText.size() > 0)
-			backSpaceText.pop_back();
-
-		mainTextBox->SetLabel(backSpaceText);
-
-		if (backSpaceText.size() > 2)
-		{
-			std::string lastTwoChars = backSpaceText.substr(backSpaceText.size() - 2);
-
-			if (lastTwoChars == " +" || lastTwoChars == "+ " ||
-				lastTwoChars == " -" || lastTwoChars == "- " ||
-				lastTwoChars == " *" || lastTwoChars == "* " ||
-				lastTwoChars == " /" || lastTwoChars == "/ " ||
-				lastTwoChars == " %" || lastTwoChars == "% ")
-				wasOperaterPressed = true;
-
-			if (lastTwoChars == "0." || lastTwoChars == ". ")
-				wasDecimalPressed = true;
-
-			if (lastTwoChars == "s " || lastTwoChars == " s" ||
-				lastTwoChars == "c " || lastTwoChars == " c" ||
-				lastTwoChars == "t " || lastTwoChars == " t")
-				wasTrigPressed = true;
-		}
-
-		if (mainTextBox->GetValue().ToStdString() == "")
-		{
-			wasEqualsPressed = wasNumberPressed = wasNegationPressed = wasDecimalPressed = false;
-			wasOperaterPressed = true;
-		}
-
+		BackspaceCase();
 		break;
-	}
+
 	case IDTable::btnClear:
-		mainTextBox->SetLabelText("");
-		tokens.clear();
-		wasOperaterPressed = true;
-		wasNegationPressed = wasNumberPressed = wasTrigPressed = false;
-
+		ClearCase();
 		break;
-#pragma endregion
 
 	default:
 		break;
 	}
 }
 
-void Window::ChangeSymbolInParsedString(wxString _string)
+void Window::PressButton(int _id)
+{
+	// Fake a click so keys go through OnButtonClick too
+	wxButton* buttonToPress = ButtonFactory::GetButton(vecButtons, _id);
+	if (buttonToPress == nullptr)
+	{
+		return;
+	}
+
+	wxCommandEvent clickEvent(wxEVT_BUTTON, _id);
+	clickEvent.SetEventObject(buttonToPress);
+	OnButtonClick(clickEvent);
+}
+
+void Window::OnKeyDown(wxKeyEvent& _event)
+{
+	// Runs before the focused button sees the key, stops Space clicking the last button
+	// Enter shows up here or in OnCharacterPressed depending on focus
+	switch (_event.GetKeyCode())
+	{
+	case WXK_RETURN: case WXK_NUMPAD_ENTER:
+		PressButton(IDTable::btnEquals);
+		break;
+	case WXK_BACK:
+		PressButton(IDTable::btnBackspace);
+		break;
+	case WXK_ESCAPE: case WXK_DELETE:
+		PressButton(IDTable::btnClear);
+		break;
+	case WXK_F9:
+		PressButton(IDTable::btnNegative);
+		break;
+	case WXK_SPACE:
+		break;
+	default:
+		// Everything else goes to OnCharacterPressed
+		_event.Skip();
+		break;
+	}
+}
+
+void Window::OnCharacterPressed(wxKeyEvent& _event)
+{
+	// what key was pressed
+	const ButtonInfo* buttonInfo = ButtonFactory::GetButtonInfoForKey(_event.GetUnicodeKey());
+
+	if (buttonInfo != nullptr)
+	{
+		PressButton(buttonInfo->id);
+	}
+
+	_event.Skip();
+}
+
+void Window::OnResize(wxSizeEvent& _event)
+{
+	// Skip while the window is still being built
+	if (startingClientSize.x > 0 && startingClientSize.y > 0)
+	{
+		// Scale off whichever side shrunk more
+		double widthScale = (double)GetClientSize().x / startingClientSize.x;
+		double heightScale = (double)GetClientSize().y / startingClientSize.y;
+		double scale = std::min(widthScale, heightScale);
+
+		genericFont = ScaleFont(genericFont, buttonFontSize, scale, 6.0);
+		buttonFactoryObj.SetButtonsFont(genericFont, vecButtons);
+
+		historyText->SetFont(ScaleFont(historyText->GetFont(), historyFontSize, scale, 6.0));
+		historyText->SetMinSize(wxSize(-1, historyText->GetCharHeight()));
+
+		mainTextBox->SetFont(ScaleFont(mainTextBox->GetFont(), displayFontSize, scale, 8.0));
+	}
+
+	// Let the sizers handle the rest
+	_event.Skip();
+}
+
+void Window::EqualsCase()
+{
+	// FixOperators cleans up leftovers first (Ex: "3 + " -> "3")
+	std::string needsFixing = GetDisplayText();
+	std::string displayAns = needsFixing;
+
+	CalculatorProcessor* instance = CalculatorProcessor::GetInstance();
+	instance->FixOperators(needsFixing, tokens);
+
+	mainTextBox->SetValue(needsFixing);
+	CreateTokens();
+
+	// Nothing left to solve
+	if (needsFixing == "")
+	{
+		mainTextBox->SetLabel(CalculatorProcessor::ErrorText);
+		return;
+	}
+
+	// Anything else wrong comes back as undef
+	std::string calculatorDisplayAns;
+	instance->CreateAndCalcTokens(needsFixing, calculatorDisplayAns);
+
+	historyText->SetLabel(displayAns + " =");
+	mainTextBox->SetLabel(calculatorDisplayAns);
+	wasOperaterPressed = wasEqualsPressed = true;
+}
+
+void Window::DecimalCase()
+{
+	std::string displayText = GetDisplayText();
+
+	// One decimal per number
+	if (!displayText.empty() && CountCharInLastToken('.') == 1)
+	{
+		return;
+	}
+
+	if (displayText.empty() || wasOperaterPressed || wasNumberPressed || wasNegationPressed)
+	{
+		mainTextBox->AppendText('.');
+	}
+
+	wasOperaterPressed = wasNumberPressed = false;
+	wasDecimalPressed = true;
+}
+
+void Window::NegativeCase()
+{
+	Window::CreateTokens();
+	Window::CheckOperator();
+
+	if (tokens.empty())
+	{
+		tokens.push_back(GetDisplayText());
+	}
+
+	// After an operator or answer, ~ starts a new number
+	bool lastTokenIsOperator = tokens.back().size() == 1 && CalculatorProcessor::IsOperator(tokens.back()[0]);
+	if ((wasOperaterPressed && lastTokenIsOperator) || (!wasNegationPressed && wasEqualsPressed))
+	{
+		mainTextBox->AppendText('~');
+		MarkNegationPressed();
+		return;
+	}
+
+	// Otherwise flip the sign on the last number
+	std::string& lastToken = tokens.back();
+	if (!lastToken.empty())
+	{
+		if (lastToken.front() == '~')
+		{
+			lastToken.erase(0, 1);
+		}
+		else
+		{
+			lastToken.insert(0, 1, '~');
+		}
+	}
+	else if (GetDisplayText().empty())
+	{
+		lastToken.push_back('~');
+	}
+
+	mainTextBox->SetLabelText(CalculatorProcessor::JoinTokens(tokens));
+
+	MarkNegationPressed();
+}
+
+void Window::BackspaceCase()
+{
+	std::string backSpaceText = GetDisplayText();
+	if (!backSpaceText.empty())
+	{
+		backSpaceText.pop_back();
+	}
+
+	mainTextBox->SetLabel(backSpaceText);
+
+	// Fix the flags to match what's left
+	CheckOperator();
+
+	if (backSpaceText.empty())
+	{
+		ResetFlags();
+	}
+}
+
+void Window::ClearCase()
+{
+	mainTextBox->SetLabelText("");
+	historyText->SetLabel("");
+	tokens.clear();
+	// Reset everything, wasEqualsPressed too or trig stays blocked
+	ResetFlags();
+}
+
+void Window::SetButtonNumTo(const wxString& _string)
+{
+	mainTextBox->AppendText(_string);
+	wasOperaterPressed = wasNegationPressed = wasDecimalPressed = wasTrigPressed = false;
+	wasNumberPressed = true;
+}
+
+void Window::ChangeSymbolInParsedString(const wxString& _string)
 {
 	if (wasOperaterPressed)
 	{
-		std::string replaceSymString = mainTextBox->GetValue().ToStdString();
-		if (mainTextBox->GetValue().ToStdString().size() == 0)
+		std::string replaceSymString = GetDisplayText();
+		if (replaceSymString.empty())
 		{
 			mainTextBox->AppendText("0 " + _string + " ");
 			return;
 		}
 
-		// Check to see if the current last character is a space or not
-		if (replaceSymString.back() == ' ')
-			replaceSymString.pop_back();
+		// Drop the trailing space
+		RemoveTrailingSpace(replaceSymString);
 
-		// Check to see if the current character is a symbol or not
-		// This helps with backspacing against operaters and then overriding numbers
-		// by accidentally deleting them
-		if (replaceSymString.back() == '+' ||
-			replaceSymString.back() == '-' ||
-			replaceSymString.back() == '*' ||
-			replaceSymString.back() == '/' ||
-			replaceSymString.back() == '%')
+		// Swap out the old operator so you can change your mind
+		if (!replaceSymString.empty() && CalculatorProcessor::IsOperator(replaceSymString.back()))
+		{
 			replaceSymString.pop_back();
+		}
 
-		// Check to see if the current last character is a space or not
-		if (replaceSymString.back() == ' ')
-			replaceSymString.pop_back();
+		// And the one before the operator
+		RemoveTrailingSpace(replaceSymString);
 		mainTextBox->SetLabel(replaceSymString);
 		mainTextBox->AppendText(" " + _string + " ");
 	}
@@ -290,182 +421,138 @@ void Window::ChangeSymbolInParsedString(wxString _string)
 	wasNumberPressed = wasDecimalPressed = false;
 }
 
-void Window::CreateTokens()
+void Window::ChangeTrigSymbol(const wxString& _string)
 {
-	wasEqualsPressed = false;
-	tokens.clear();
-	std::stringstream lineStream(mainTextBox->GetValue().ToStdString());
-
-	std::string secondaryStringToParseWith;
-
-	// Collects all tokens in the string from mainTextBox
-	while (std::getline(lineStream, secondaryStringToParseWith, ' '))
+	if (wasEqualsPressed)
 	{
-		if (secondaryStringToParseWith == "")
-			continue;
-		else
-			tokens.push_back(secondaryStringToParseWith);
+		return;
 	}
 
-}
-
-void Window::SetButtonNumTo(wxString _string)
-{
-	mainTextBox->AppendText(_string);
-	wasOperaterPressed = wasNegationPressed = wasDecimalPressed = wasTrigPressed = false;
-	wasNumberPressed = true;
-}
-
-int Window::CountCharInLastToken(char _charToCheckFor)
-{
-	int characterAbundanceCount = 0;
-	Window::CreateTokens();
-
-	if (tokens.size() == 0)
+	if (wasTrigPressed)
 	{
-		for (auto characters : mainTextBox->GetValue().ToStdString())
-			if (characters == _charToCheckFor)
-				++characterAbundanceCount;
-	}
-	else
-	{
-		for (auto characters : tokens[tokens.size() - 1])
+		std::string replaceSymString = GetDisplayText();
+		if (replaceSymString.empty())
 		{
-			if (characters == _charToCheckFor)
-				++characterAbundanceCount;
+			mainTextBox->AppendText(_string);
+			return;
 		}
-	}
 
-	return characterAbundanceCount;
+		if (CalculatorProcessor::IsTrigSymbol(replaceSymString.back()))
+		{
+			replaceSymString.pop_back();
+		}
+
+		mainTextBox->SetLabel(replaceSymString);
+		mainTextBox->AppendText(_string);
+	}
+	else if (wasOperaterPressed)
+	{
+		// One trig per number
+		std::string lastToken = GetLastToken();
+		for (char trigSymbol : { 's', 'c', 't' })
+		{
+			if (std::count(lastToken.begin(), lastToken.end(), trigSymbol) == 1)
+			{
+				return;
+			}
+		}
+
+		mainTextBox->AppendText(_string);
+		wasTrigPressed = true;
+	}
+	wasNumberPressed = wasDecimalPressed = wasOperaterPressed = false;
 }
 
 void Window::CheckOperator()
 {
-	std::string checkForOperator = mainTextBox->GetValue().ToStdString();
+	std::string checkForOperator = GetDisplayText();
 	if (checkForOperator.size() > 2)
 	{
 		std::string lastTwoChars = checkForOperator.substr(checkForOperator.size() - 2);
 
-		if (lastTwoChars == "+ " || lastTwoChars == "- " || lastTwoChars == "* " || lastTwoChars == "/ " || lastTwoChars == "% ")
+		// Ex: "+ "
+		if (lastTwoChars[1] == ' ' && CalculatorProcessor::IsOperator(lastTwoChars[0]))
+		{
 			wasOperaterPressed = true;
-		// If the last two characters are the following then also append a space after
-		else if (lastTwoChars == " +" || lastTwoChars == " -" || lastTwoChars == " *" || lastTwoChars == " /" || lastTwoChars == " %")
+		}
+		// Ex: " +"
+		else if (lastTwoChars[0] == ' ' && CalculatorProcessor::IsOperator(lastTwoChars[1]))
 		{
 			wasOperaterPressed = true;
 			lastTwoChars.push_back(' ');
 		}
 
 		if (lastTwoChars == "0." || lastTwoChars == ". ")
+		{
 			wasDecimalPressed = true;
+		}
 
-		if (lastTwoChars == "s " || lastTwoChars == " s" ||
-			lastTwoChars == "c " || lastTwoChars == " c" ||
-			lastTwoChars == "t " || lastTwoChars == " t")
+		// Ex: "s " or " s"
+		if ((lastTwoChars[1] == ' ' && CalculatorProcessor::IsTrigSymbol(lastTwoChars[0])) ||
+			(lastTwoChars[0] == ' ' && CalculatorProcessor::IsTrigSymbol(lastTwoChars[1])))
+		{
 			wasTrigPressed = true;
+		}
 	}
 }
 
-void Window::NegativeCase()
+void Window::CreateTokens()
+{
+	wasEqualsPressed = false;
+
+	// Split the display into tokens
+	CalculatorProcessor::SplitIntoTokens(GetDisplayText(), tokens);
+}
+
+std::string Window::GetDisplayText()
+{
+	// Display text as a std::string
+	return mainTextBox->GetValue().ToStdString();
+}
+
+std::string Window::GetLastToken()
 {
 	Window::CreateTokens();
-	Window::CheckOperator();
 
-	if (tokens.size() < 1)
-		tokens.push_back(mainTextBox->GetValue().ToStdString());
+	// No tokens yet? Use the whole display
+	return tokens.empty() ? GetDisplayText() : tokens.back();
+}
 
-	if (wasOperaterPressed)
+int Window::CountCharInLastToken(char _charToCheckFor)
+{
+	std::string lastToken = GetLastToken();
+	int characterAbundanceCount = (int)std::count(lastToken.begin(), lastToken.end(), _charToCheckFor);
+
+	return characterAbundanceCount;
+}
+
+void Window::RemoveTrailingSpace(std::string& _stringToFix)
+{
+	if (!_stringToFix.empty() && _stringToFix.back() == ' ')
 	{
-		if (tokens[tokens.size() - 1] == '*' || tokens[tokens.size() - 1] == '/' ||
-			tokens[tokens.size() - 1] == '-' || tokens[tokens.size() - 1] == '+' ||
-			tokens[tokens.size() - 1] == '%')
-		{
-			mainTextBox->AppendText('~');
-			wasNegationPressed = true;
-			wasOperaterPressed = wasEqualsPressed = false;
-			return;
-		}
+		_stringToFix.pop_back();
 	}
+}
 
-	if (!wasNegationPressed && wasEqualsPressed)
-	{
-		mainTextBox->AppendText('~');
-		wasNegationPressed = true;
-		wasOperaterPressed = wasEqualsPressed = false;
-		return;
-	}
+void Window::ResetFlags()
+{
+	// Back to how it starts when the app opens
+	wasOperaterPressed = true;
+	wasEqualsPressed = wasNumberPressed = wasNegationPressed = wasDecimalPressed = wasTrigPressed = false;
+}
 
-	std::string* lastToken = &tokens[tokens.size() - 1];
-	std::reverse(lastToken->begin(), lastToken->end());
-
-	if (lastToken->size() > 0)
-	{
-		if (lastToken->back() == '~')
-			lastToken->pop_back();
-		else if (lastToken->back() != '~')
-			lastToken->push_back('~');
-	}
-	else if (mainTextBox->GetValue().IsEmpty())
-		lastToken->push_back('~');
-
-	std::reverse(lastToken->begin(), lastToken->end());
-
-	std::string readBackIn = "";
-	for (size_t i = 0; i < tokens.size(); ++i)
-		readBackIn += tokens[i] + ' ';
-
-	if (readBackIn.back() == ' ')
-		readBackIn.pop_back();
-
-	mainTextBox->SetLabelText(readBackIn);
-
+void Window::MarkNegationPressed()
+{
+	// Same flags every time something gets negated
 	wasNegationPressed = true;
 	wasOperaterPressed = wasEqualsPressed = false;
 }
 
-bool Window::DivModByZero()
+wxFont Window::ScaleFont(wxFont _font, double _startingSize, double _scale, double _smallestSize)
 {
-	CreateTokens();
-
-	for (size_t i = 0; i < tokens.size(); ++i)
-		if (tokens[i] == "%" || tokens[i] == "/")
-			if (tokens[i + 1] == "0" || tokens[i + 1] == "~" || tokens[i + 1] == "." || tokens[i + 1] == "~.")
-				return true;
-
-	return false;
-}
-
-void Window::ChangeTrigSymbol(wxString _string)
-{
-	if (wasEqualsPressed)
-		return;
-
-	if (wasTrigPressed)
-	{
-		if (mainTextBox->GetValue().ToStdString().size() == 0)
-		{
-			mainTextBox->AppendText(_string);
-			return;
-		}
-
-		std::string replaceSymString = mainTextBox->GetValue().ToStdString();
-
-		if (replaceSymString.back() == 's' ||
-			replaceSymString.back() == 'c' ||
-			replaceSymString.back() == 't')
-			replaceSymString.pop_back();
-
-		mainTextBox->SetLabel(replaceSymString);
-		mainTextBox->AppendText(_string);
-	}
-	else if (!wasTrigPressed && wasOperaterPressed)
-	{
-		if (CountCharInLastToken('s') == 1 || CountCharInLastToken('c') == 1 || CountCharInLastToken('t') == 1)
-			return;
-		
-		mainTextBox->AppendText(_string);
-		wasTrigPressed = true;
-	}
-	wasNumberPressed = wasDecimalPressed = wasOperaterPressed = false;
+	// Scale it, but never below _smallestSize
+	_font.SetFractionalPointSize(std::max(_startingSize * _scale, _smallestSize));
+	return _font;
 }
 
 int Window::GetAmountOfButtons()
@@ -475,5 +562,5 @@ int Window::GetAmountOfButtons()
 
 wxBoxSizer* Window::WindowGetBoxSizers(int _position)
 {
-	return vecBoxSizers[_position];
+	return sizerButtonsAll[_position];
 }

@@ -1,14 +1,15 @@
+#pragma once
 #include "wx/wx.h"
-#include "wx/tokenzr.h"
 #include "ButtonFactory.h"
 #include "CalculatorProcessor.h"
-#include <queue>
+#include <algorithm>
 
 class Window : public wxFrame
 {
 private:
 	ButtonFactory buttonFactoryObj;
 
+	// Sizers
 	wxBoxSizer* mainBox = nullptr;
 	wxBoxSizer* textBoxRow = nullptr;
 	wxBoxSizer* row1 = nullptr;
@@ -17,66 +18,67 @@ private:
 	wxBoxSizer* row4 = nullptr;
 	wxBoxSizer* row5 = nullptr;
 	wxBoxSizer* row6 = nullptr;
-	std::vector<wxBoxSizer*> vecBoxSizers;
+	std::vector<wxBoxSizer*> sizerButtonsAll;
 
-	wxFont genericFont;
-
-	wxButton* btnNum1 = nullptr;
-	wxButton* btnNum2 = nullptr;
-	wxButton* btnNum3 = nullptr;
-	wxButton* btnNum4 = nullptr;
-	wxButton* btnNum5 = nullptr;
-	wxButton* btnNum6 = nullptr;
-	wxButton* btnNum7 = nullptr;
-	wxButton* btnNum8 = nullptr;
-	wxButton* btnNum9 = nullptr;
-	wxButton* btnNum0 = nullptr;
-	wxButton* btnEquals = nullptr;
-	wxButton* btnAdd = nullptr;
-	wxButton* btnSubtract = nullptr;
-	wxButton* btnMultiply = nullptr;
-	wxButton* btnDivide = nullptr;
-	wxButton* btnMod = nullptr;
-	wxButton* btnSIN = nullptr;
-	wxButton* btnCOS = nullptr;
-	wxButton* btnTAN = nullptr;
-	wxButton* btnDecimal = nullptr;
-	wxButton* btnNegative = nullptr;
-	wxButton* btnBackspace = nullptr;
-	wxButton* btnClear = nullptr;
+	// Controls
 	wxTextCtrl* mainTextBox = nullptr;
+	wxStaticText* historyText = nullptr;
 	std::vector<wxButton*> vecButtons;
 
-	std::string parseString;
+	// Fonts and resizing
+	wxFont genericFont;
+	double buttonFontSize = 0, historyFontSize = 0, displayFontSize = 0;
+	wxSize startingClientSize;
+
+	// Calculator state
 	std::vector<std::string> tokens;
-	std::queue<float> operandsQueue;
-	std::queue<char> operatorsQueue;
-	std::queue<std::string> functionsQueue;
+	// Start false, otherwise they're random garbage
+	bool wasOperaterPressed = false, wasEqualsPressed = false, wasNumberPressed = false, wasNegationPressed = false, wasDecimalPressed = false, wasTrigPressed = false;
 
-	bool wasOperaterPressed, wasEqualsPressed, wasNumberPressed, wasNegationPressed, wasDecimalPressed, wasTrigPressed, removedSpace;
-	int charIndex = 0;
-	wxString displayAns = " ", parsedAdjustedString = " ";
-	std::string calculatorDisplayAns= " ";
-	float num1, num2, answer = 0;
-	char operational = ' ';
+	// Constructor helpers
+	void SetUpSizers();
+	void SetUpFonts();
+	void SetUpDisplay();
+	void SetUpButtons(wxSize _normalButtonSize, int _spacerSize);
+	void SetUpKeyboardInput();
+	void SetUpResizing(const wxSize& _normalButtonSize, int _spacerSize);
 
-	
+	// Event handlers
+	void OnButtonClick(wxCommandEvent& _event);
+	void OnKeyDown(wxKeyEvent& _event);
+	void OnCharacterPressed(wxKeyEvent& _event);
+	void OnResize(wxSizeEvent& _event);
+
+	// Bigger button cases from OnButtonClick
+	void EqualsCase();
+	void DecimalCase();
+	void NegativeCase();
+	void BackspaceCase();
+	void ClearCase();
+
+	// Editing the equation
+	void SetButtonNumTo(const wxString& _string);
+	void ChangeSymbolInParsedString(const wxString& _string);
+	void ChangeTrigSymbol(const wxString& _string);
+	void CheckOperator();
+
+	// Helpers
+	void CreateTokens();
+	std::string GetDisplayText();
+	std::string GetLastToken();
+	int CountCharInLastToken(char _charToCheckFor);
+	void RemoveTrailingSpace(std::string& _stringToFix);
+	void ResetFlags();
+	void MarkNegationPressed();
+	wxFont ScaleFont(wxFont _font, double _startingSize, double _scale, double _smallestSize);
+
 public:
 	Window();
-	void OnButtonClick(wxCommandEvent& _event);
-	void ChangeSymbolInParsedString(wxString _string);
-	void SetButtonNumTo(wxString _string);
-	void CreateTokens();
-	void CheckOperator();
-	void NegativeCase();
-	void ChangeTrigSymbol(wxString _string);
-	bool DivModByZero();
-	int CountCharInLastToken(char _charToCheckFor);
 
-	// Default all values true, overidden during runtime
-	std::vector<bool> vecButtonEnabling = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };
+	// Presses a button from code, keyboard input uses this too
+	void PressButton(int _id);
 
-	// Testing assistance methods
+	// Unit testing helpers
 	int GetAmountOfButtons();
 	wxBoxSizer* WindowGetBoxSizers(int _position);
 

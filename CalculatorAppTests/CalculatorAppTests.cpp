@@ -34,7 +34,7 @@ namespace CalculatorAppTests
 			testString = "0.5 * 0.3 / 23.3 - 4 % 5";
 			CalculatorProcessor::GetInstance()->FixOperators(testString, tokens);
 			CalculatorProcessor::GetInstance()->CreateAndCalcTokens(testString, answerString);
-			// If the string is negative then check if its negative and update accordingly
+			// Swap the ~ back to - so it can be read
 			if (answerString[0] == '~')
 				answerString[0] = '-';
 			answerAsFloat = stod(answerString);
@@ -57,11 +57,12 @@ namespace CalculatorAppTests
 			testString = "c33 - 3";
 			CalculatorProcessor::GetInstance()->FixOperators(testString, tokens);
 			CalculatorProcessor::GetInstance()->CreateAndCalcTokens(testString, answerString);
-			// If the string is negative then check if its negative and update accordingly
+			// Swap the ~ back to - so it can be read
 			if (answerString[0] == '~')
 				answerString[0] = '-';
 			answerAsFloat = stod(answerString);
-			expectedFloat = -3.01327;
+			// cos(33) - 3, old formatting chopped the last digit so this used to be -3.01327
+			expectedFloat = -3.013277;
 
 			Assert::AreEqual(expectedFloat, answerAsFloat);
 		}
@@ -70,7 +71,7 @@ namespace CalculatorAppTests
 			testString = "t77";
 			CalculatorProcessor::GetInstance()->FixOperators(testString, tokens);
 			CalculatorProcessor::GetInstance()->CreateAndCalcTokens(testString, answerString);
-			// If the string is negative then check if its negative and update accordingly
+			// Swap the ~ back to - so it can be read
 			if (answerString[0] == '~')
 				answerString[0] = '-';
 			answerAsFloat = stof(answerString);
@@ -92,11 +93,11 @@ namespace CalculatorAppTests
 		{
 			testString = "2346 / 0";
 			CalculatorProcessor::GetInstance()->FixOperators(testString, tokens);
-			if (testString != "Syntax Error")
+			if (testString != CalculatorProcessor::ErrorText)
 				CalculatorProcessor::GetInstance()->CreateAndCalcTokens(testString, answerString);
 			answerString = testString;
 
-			expectedString = "Syntax Error";
+			expectedString = CalculatorProcessor::ErrorText;
 
 			Assert::AreEqual(expectedString, answerString);
 		}
@@ -104,10 +105,10 @@ namespace CalculatorAppTests
 		{
 			testString = "30 % 0";
 			CalculatorProcessor::GetInstance()->FixOperators(testString, tokens);
-			if (testString != "Syntax Error")
+			if (testString != CalculatorProcessor::ErrorText)
 				CalculatorProcessor::GetInstance()->CreateAndCalcTokens(testString, answerString);
 
-			expectedString = "Syntax Error";
+			expectedString = CalculatorProcessor::ErrorText;
 
 			Assert::AreEqual(expectedFloat, answerAsFloat);
 		}
@@ -197,7 +198,6 @@ namespace CalculatorAppTests
 		Window windowObj;
 
 		// Expected Results
-		std::vector<bool> expectedEnabled;
 		wxFont expectedFont;
 		int expectedSizerOrientation = 0;
 		int expectedSpacerSize = 0;
@@ -205,7 +205,6 @@ namespace CalculatorAppTests
 		int expectedAmountOfButtons = 0;
 
 		// Actual Results
-		std::vector<bool> actualEnabled;
 		wxFont actualFont;
 		int actualSizerOrientation = 0;
 		int actualSpacerSize = 0;
@@ -242,12 +241,13 @@ namespace CalculatorAppTests
 
 			Assert::IsTrue(expectedID == actualID);
 		}
-		TEST_METHOD(TEST_BUTTON_ENABLED_VECTOR)
+		TEST_METHOD(TEST_KEYBOARD_LOOKUP)
 		{
-			expectedEnabled = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true };
-			actualEnabled = buttonFactoryObj.GetEnabeledVector(&windowObj);
+			// x should press the multiply button
+			expectedID = IDTable::btnMultiply;
+			actualID = ButtonFactory::GetButtonInfoForKey('x')->id;
 
-			Assert::IsTrue(expectedEnabled == actualEnabled);
+			Assert::IsTrue(expectedID == actualID);
 		}
 		TEST_METHOD(TEST_SPACER_SIZE)
 		{
@@ -303,10 +303,7 @@ namespace CalculatorAppTests
 			
 			buttonFactoryObj.CreateButtons(&windowObj, actualVecButtons, normalButtonSize);
 		
-			// They will not be equal because they are pointing towards different places in memory
-			// But when you check the components by adding a breakpoint on the following line then
-			// checking against each other you'll find that they have been made to the same specifications, just different memory
-			// addresses which results in a false being made
+			// Same specs but different addresses, so these won't be equal
 			Assert::IsFalse(expectedVecButtons == actualVecButtons);
 		}
 		TEST_METHOD(TEST_PARENT_IS_SAME_AS_CREATED_BUTTON)
@@ -319,7 +316,7 @@ namespace CalculatorAppTests
 
 			wxWindow* ptrWindow = ptrButton->GetParent();
 
-			// Check to make sure that the parent window pointer is the proper window to be creating it off of
+			// Buttons should belong to the window
 			Assert::IsTrue(ptrWindow == &windowObj);
 		}
 	};
